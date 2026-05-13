@@ -50,6 +50,11 @@ class Settings(BaseSettings):
     # suite is not subject to the per-IP limits documented on the routes.
     rate_limit_enabled: bool = True
 
+    # CORS origins that may call the API from a browser. Dev default
+    # matches the vite dev server; production deployments must override
+    # via SOCIALPYKIT_CORS_ORIGINS (json list of urls).
+    cors_origins: list[str] = ["http://localhost:5173"]
+
     # JWT auth configuration.
     # In production, jwt_secret_key MUST come from the environment
     # (SOCIALPYKIT_JWT_SECRET_KEY). The default below is only for local dev
