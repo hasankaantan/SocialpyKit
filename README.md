@@ -13,6 +13,7 @@ If `nunomaduro/laravel-starter-kit` set the bar for "what a senior-grade Laravel
 - [Highlights](#highlights)
 - [Tech Stack](#tech-stack)
 - [Architecture](#architecture)
+- [Using This Template](#using-this-template)
 - [Quick Start](#quick-start)
 - [Development Workflow](#development-workflow)
 - [Strict Tooling Principles](#strict-tooling-principles)
@@ -112,6 +113,39 @@ AGENTS.md
 | Repository → SQLAlchemy | ✅ | — |
 | Repository → business logic | ❌ | only data access |
 | Schema → Schema | DTO is `frozen=True`; never reuse the same schema for input *and* output | — |
+
+---
+
+## Using This Template
+
+There are two ways to start a new project from SocialpyKit:
+
+### Option A — GitHub "Use this template" (one click)
+
+The repo is registered as a [GitHub template repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-template-repository). Click **Use this template → Create a new repository** on the GitHub UI to clone the source tree verbatim into a fresh repo under your own account.
+
+After cloning, search-and-replace the project literals listed in [`copier.yaml`](./copier.yaml) under `_manual_rename_targets`:
+
+```bash
+# core literals to rename in the cloned repo:
+#   socialpykit            -> mykit          (env-var prefix, db name, docker image)
+#   SOCIALPYKIT_           -> MYKIT_         (uppercase env-var prefix)
+#   Socialbug Apps LLC     -> Your Company   (author)
+#   Hasan Kaan Tan         -> You            (maintainer)
+#   socialbugapps          -> your-org       (github org)
+```
+
+Tip: a quick `git grep -l socialpykit | xargs sed -i '' 's/socialpykit/mykit/g'` (mind the BSD/GNU sed difference) handles most of it, then commit the resulting diff in one atomic refactor.
+
+### Option B — Copier (parametrised, recommended for new automation)
+
+`copier.yaml` declares the variables a future copier render would prompt for (project name, slug, author, sentry toggle, etc.). The source tree is **not yet parametrised** with Jinja, so `copier copy` against `main` is the same as Option A for now. Once the `template` branch ships, you'll be able to:
+
+```bash
+uvx copier copy gh:socialbugapps/socialpykit@template ./my-new-service
+```
+
+Until then, prefer Option A.
 
 ---
 
