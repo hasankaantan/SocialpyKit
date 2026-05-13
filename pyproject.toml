@@ -86,14 +86,17 @@ exclude = [
 select = ["ALL"]
 ignore = [
     "D",      # docstrings optional (add back if project needs them)
-    "ANN101", # self type annotation
-    "ANN102", # cls type annotation
+    "COM812", # trailing comma — conflicts with ruff format, per ruff docs
+    "B008",   # function call in argument default — FastAPI Depends() pattern
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = [
     "S101",    # Use of assert detected
     "PLC0415", # Import outside toplevel
+]
+"app/gunicorn_runner.py" = [
+    "ANN401",  # Any in **kwargs — gunicorn BaseApplication API requires it
 ]
 
 [tool.ruff.lint.flake8-bugbear]
