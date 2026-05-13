@@ -151,3 +151,8 @@ ui/dist/
 ui/.vite/
 ui/coverage/
 ui/.eslintcache
+
+# 'lib/' is in the python build-artefact section above; un-ignore the
+# frontend's src/lib/ so shadcn-vue's utils.ts ships with the repo.
+!ui/src/lib/
+!ui/src/lib/**
