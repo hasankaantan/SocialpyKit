@@ -44,7 +44,7 @@ async def get_admin_user(current_user: CurrentUserDep) -> User:
     Raises :class:`AuthorizationError` (mapped to HTTP 403 by the global
     handler) when the user lacks the admin role.
     """
-    if current_user.role is not UserRole.ADMIN:
+    if current_user.role != UserRole.ADMIN:
         message = "Admin role required for this action"
         raise AuthorizationError(message, context={"user_id": current_user.id})
     return current_user

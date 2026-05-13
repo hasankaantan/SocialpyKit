@@ -119,6 +119,8 @@ ignore = [
     "PLR2004", # Magic value in comparison — readable inside assertions
     "S105",    # Password literals — unavoidable in auth test fixtures
     "S106",    # Password kwargs — same reason
+    "S107",    # Password as function default — same reason
+    "PLR0913", # Too many arguments — kw-only helpers stay readable
 ]
 "app/gunicorn_runner.py" = [
     "ANN401",  # Any in **kwargs — gunicorn BaseApplication API requires it
