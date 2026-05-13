@@ -1,9 +1,9 @@
 from fastapi import APIRouter
 from fastapi.param_functions import Depends
 
-from socialpykit.db.dao.dummy_dao import DummyDAO
-from socialpykit.db.models.dummy_model import DummyModel
-from socialpykit.web.api.dummy.schema import DummyModelDTO, DummyModelInputDTO
+from app.db.dao.dummy_dao import DummyDAO
+from app.db.models.dummy_model import DummyModel
+from app.web.api.dummy.schema import DummyModelDTO, DummyModelInputDTO
 
 router = APIRouter()
 

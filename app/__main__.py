@@ -1,14 +1,14 @@
 import uvicorn
 
-from socialpykit.gunicorn_runner import GunicornApplication
-from socialpykit.settings import settings
+from app.gunicorn_runner import GunicornApplication
+from app.settings import settings
 
 
 def main() -> None:
     """Entrypoint of the application."""
     if settings.reload:
         uvicorn.run(
-            "socialpykit.web.application:get_app",
+            "app.web.application:get_app",
             workers=settings.workers_count,
             host=settings.host,
             port=settings.port,
@@ -21,7 +21,7 @@ def main() -> None:
         # option is not used, because reload
         # feature doesn't work with gunicorn workers.
         GunicornApplication(
-            "socialpykit.web.application:get_app",
+            "app.web.application:get_app",
             host=settings.host,
             port=settings.port,
             workers=settings.workers_count,

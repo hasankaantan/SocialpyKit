@@ -11,10 +11,10 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-from socialpykit.db.dependencies import get_db_session
-from socialpykit.db.utils import create_database, drop_database
-from socialpykit.settings import settings
-from socialpykit.web.application import get_app
+from app.db.dependencies import get_db_session
+from app.db.utils import create_database, drop_database
+from app.settings import settings
+from app.web.application import get_app
 
 
 @pytest.fixture(scope="session")
@@ -34,8 +34,8 @@ async def _engine(anyio_backend: Any) -> AsyncGenerator[AsyncEngine, None]:
 
     :yield: new engine.
     """
-    from socialpykit.db.meta import meta
-    from socialpykit.db.models import load_all_models
+    from app.db.meta import meta
+    from app.db.models import load_all_models
 
     load_all_models()
 

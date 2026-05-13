@@ -3,7 +3,7 @@ import sys
 
 from loguru import logger
 
-from socialpykit.settings import settings
+from app.settings import settings
 
 
 class InterceptHandler(logging.Handler):

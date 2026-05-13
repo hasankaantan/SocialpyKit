@@ -5,7 +5,7 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
-from socialpykit.db.dao.dummy_dao import DummyDAO
+from app.db.dao.dummy_dao import DummyDAO
 
 
 async def test_creation(

@@ -1,6 +1,6 @@
 from fastapi.routing import APIRouter
 
-from socialpykit.web.api import dummy, monitoring
+from app.web.api import dummy, monitoring
 
 api_router = APIRouter()
 api_router.include_router(monitoring.router)

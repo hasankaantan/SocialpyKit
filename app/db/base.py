@@ -1,6 +1,6 @@
 from sqlalchemy.orm import DeclarativeBase
 
-from socialpykit.db.meta import meta
+from app.db.meta import meta
 
 
 class Base(DeclarativeBase):

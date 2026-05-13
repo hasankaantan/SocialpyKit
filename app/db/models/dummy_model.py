@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql.sqltypes import String
 
-from socialpykit.db.base import Base
+from app.db.base import Base
 
 
 class DummyModel(Base):

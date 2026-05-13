@@ -1,1 +1,1 @@
-"""Tests for socialpykit."""
+"""Tests for app."""

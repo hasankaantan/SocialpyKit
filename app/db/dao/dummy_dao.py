@@ -2,8 +2,8 @@ from fastapi import Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from socialpykit.db.dependencies import get_db_session
-from socialpykit.db.models.dummy_model import DummyModel
+from app.db.dependencies import get_db_session
+from app.db.models.dummy_model import DummyModel
 
 
 class DummyDAO:

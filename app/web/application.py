@@ -6,9 +6,9 @@ from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 
-from socialpykit.settings import settings
-from socialpykit.web.api.router import api_router
-from socialpykit.web.lifespan import lifespan_setup
+from app.settings import settings
+from app.web.api.router import api_router
+from app.web.lifespan import lifespan_setup
 
 
 def get_app() -> FastAPI:

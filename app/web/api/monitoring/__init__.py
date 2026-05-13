@@ -1,5 +1,5 @@
 """API for checking project status."""
 
-from socialpykit.web.api.monitoring.views import router
+from app.web.api.monitoring.views import router
 
 __all__ = ["router"]

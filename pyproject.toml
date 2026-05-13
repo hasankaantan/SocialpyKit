@@ -40,7 +40,7 @@ default-groups = ["dev"]
 [tool.isort]
 profile = "black"
 multi_line_output = 3
-src_paths = ["socialpykit",]
+src_paths = ["app",]
 
 [tool.mypy]
 python_version = "3.13"
@@ -117,7 +117,7 @@ lint.ignore = [
     "UP043",   # Unnecessary default argument specified (conflicts with mypy).
 ]
 exclude = [
-    "socialpykit/db/migrations",
+    "app/db/migrations",
     ".venv/"
 ]
 lint.mccabe = { max-complexity = 10 }
