@@ -1,11 +1,24 @@
 """SQLAlchemy model for the ``users`` table."""
 
+import enum
 from datetime import datetime
 
 from sqlalchemy import Boolean, DateTime, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
+
+
+class UserRole(enum.StrEnum):
+    """Authorization role attached to every user row.
+
+    Stored as a short string in postgres so the enum can grow without a
+    schema migration. The api layer compares against ``UserRole.ADMIN``
+    to gate admin-only routes.
+    """
+
+    USER = "user"
+    ADMIN = "admin"
 
 
 class User(Base):
@@ -24,6 +37,11 @@ class User(Base):
         Boolean,
         default=True,
         server_default="true",
+    )
+    role: Mapped[UserRole] = mapped_column(
+        String(length=16),
+        default=UserRole.USER,
+        server_default=UserRole.USER.value,
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
