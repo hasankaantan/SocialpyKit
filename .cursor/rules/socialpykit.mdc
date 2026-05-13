@@ -1,0 +1,46 @@
+---
+description: SocialpyKit strict tooling and architecture rules
+alwaysApply: true
+---
+
+# SocialpyKit cursor rules
+
+Read [`AGENTS.md`](../../AGENTS.md) for the full agent contract and [`CLAUDE.md`](../../CLAUDE.md) for the extended guardrails. The short version:
+
+## Type and lint discipline
+
+- Every function, method, parameter, return, and attribute is typed.
+- `mypy --strict` and `pyright --strict` both pass with zero errors.
+- Ruff `select = ["ALL"]`. Add ignores only with a documented reason in `pyproject.toml`.
+- No `# type: ignore`, `# noqa`, or `# pragma: no cover` without a specific rule code and a one-line explanation.
+
+## Architecture
+
+- **Routers** call services only. Never repositories or models directly.
+- **Services** contain business logic. Framework-agnostic — no FastAPI imports under `app/services/`.
+- **Repositories** implement `BaseRepository` from `app.core.essentials`. SQLAlchemy queries only, no business logic.
+- **Schemas** inherit from `BaseSchema` (frozen, `extra="forbid"`, `from_attributes=True`).
+- **Models** use SQLAlchemy 2.0 `Mapped[T]` + `mapped_column()`. Use the local `relationship` wrapper in `app/db/base.py` so `lazy="raise"` is the default.
+
+## Async by default
+
+- All route handlers and repository methods are `async def`.
+- SQLAlchemy via `asyncpg`. Never lazy load — `selectinload` / `joinedload` for every relationship.
+
+## Dates, logging, config
+
+- `whenever` for dates. Never `datetime.now()` / `datetime.utcnow()`.
+- `loguru.logger` for logs. Never bare `print()`.
+- `pydantic-settings` for config. Never scattered `os.environ.get()`.
+
+## Testing
+
+- Unit tests under `tests/unit/` with in-memory fakes that inherit the real repository.
+- Integration tests under `tests/integration/` driving the real test PostgreSQL via `httpx.AsyncClient` + `ASGITransport`.
+- `just test` must be green before every commit. 100% line coverage is enforced.
+
+## Commits
+
+- Conventional Commits, simple present tense lowercase, ≤ 72 chars on the first line.
+- One logical change per commit.
+- Never mention AI, Claude, Copilot, Codex, Cursor, or any LLM in commit messages or code comments. No `Co-Authored-By: <model>` footer, no "Generated with" tag.
