@@ -10,7 +10,12 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
 
-    /* Path aliases shared with vite.config.ts */
+    /* Path aliases shared with vite.config.ts. baseUrl is required for
+       'paths' to resolve in references mode (vue-tsc -b); ts 6 marks
+       it deprecated but still honours it when ignoreDeprecations is
+       set. */
+    "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
     "paths": {
       "@/*": ["./src/*"]
     }
