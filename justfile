@@ -34,6 +34,13 @@ migrate:
 makemig msg:
     uv run alembic revision --autogenerate -m "{{msg}}"
 
+# Promote an existing user (looked up by email) to the admin role.
+# Bootstrap pattern: register the very first account through the api,
+# then run `just promote-admin you@example.com` so it can manage the
+# rest of the system through the dashboard.
+promote-admin email:
+    uv run python scripts/promote_admin.py {{email}}
+
 # --- frontend (ui/) --------------------------------------------------------
 
 ui-install:
