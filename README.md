@@ -289,9 +289,25 @@ SOCIALPYKIT_DB_USER=socialpykit
 SOCIALPYKIT_DB_PASS=socialpykit
 SOCIALPYKIT_DB_BASE=socialpykit
 SOCIALPYKIT_SENTRY_DSN=
+
+# JWT — see warning below
+SOCIALPYKIT_JWT_SECRET_KEY=replace-this-in-production
+SOCIALPYKIT_JWT_ALGORITHM=HS256
+SOCIALPYKIT_JWT_ACCESS_TOKEN_EXPIRE_MINUTES=30
 ```
 
 Every Settings field is reflected as `SOCIALPYKIT_<UPPERCASE_FIELD>`. See [`app/settings.py`](./app/settings.py) for the full surface.
+
+> ⚠️ **`SOCIALPYKIT_JWT_SECRET_KEY` is required in production.** The default
+> value in `app/settings.py` is the literal string `dev-only-do-not-use-in-production`
+> and it ships intentionally weak so a forgotten override is immediately obvious.
+> Generate a strong key once per environment:
+>
+> ```bash
+> python -c "import secrets; print(secrets.token_urlsafe(64))"
+> ```
+>
+> Set it via your deployment platform's secret manager — never commit it.
 
 ---
 
