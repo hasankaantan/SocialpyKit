@@ -143,3 +143,11 @@ cython_debug/
 
 # Claude Code local session state
 .claude/
+tasks/
+
+# Node / Vue frontend artefacts
+node_modules/
+ui/dist/
+ui/.vite/
+ui/coverage/
+ui/.eslintcache
