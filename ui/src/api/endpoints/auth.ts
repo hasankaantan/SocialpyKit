@@ -31,13 +31,12 @@ export const authApi = {
   },
 
   /**
-   * Fetch the user behind ``token``. Caller is responsible for storing the
-   * token (auth store or composable).
+   * Fetch the user behind the current bearer token. The token is picked
+   * up automatically by the axios request interceptor in api/client.ts,
+   * so callers do not pass it explicitly.
    */
-  async me(token: string): Promise<UserResponse> {
-    const { data } = await http.get<UserResponse>("/api/auth/me", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+  async me(): Promise<UserResponse> {
+    const { data } = await http.get<UserResponse>("/api/auth/me")
     return data
   },
 } as const
