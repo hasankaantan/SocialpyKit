@@ -23,6 +23,8 @@ dependencies = [
   "sentry-sdk >=2.46.0,<3",
   "loguru>=0.7.3",
   "whenever>=0.10.0",
+  "pyjwt>=2.12.1",
+  "bcrypt>=5.0.0",
 ]
 
 [dependency-groups]

@@ -46,6 +46,14 @@ class Settings(BaseSettings):
     db_base: str = "socialpykit"
     db_echo: bool = False
 
+    # JWT auth configuration.
+    # In production, jwt_secret_key MUST come from the environment
+    # (SOCIALPYKIT_JWT_SECRET_KEY). The default below is only for local dev
+    # and pytest; never use it in deployments.
+    jwt_secret_key: str = "dev-only-do-not-use-in-production"  # noqa: S105
+    jwt_algorithm: str = "HS256"
+    jwt_access_token_expire_minutes: int = 30
+
     # Sentry's configuration.
     sentry_dsn: str | None = None
     sentry_sample_rate: float = 1.0
