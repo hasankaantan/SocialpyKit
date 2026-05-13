@@ -14,12 +14,17 @@ class BaseModel(_PydanticBaseModel):
 
 
 class BaseSchema(_PydanticBaseModel):
-    """Immutable Pydantic v2 base for request and response DTOs."""
+    """Immutable Pydantic v2 base for request and response DTOs.
+
+    ``from_attributes=True`` is enabled so response DTOs can be built from
+    SQLAlchemy ORM instances via ``Schema.model_validate(orm_obj)``.
+    """
 
     model_config = ConfigDict(
         frozen=True,
         extra="forbid",
         str_strip_whitespace=True,
+        from_attributes=True,
     )
 
 

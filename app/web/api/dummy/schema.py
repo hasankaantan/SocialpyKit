@@ -1,20 +1,16 @@
-from pydantic import BaseModel, ConfigDict
+"""Immutable DTOs for the dummy demo endpoints."""
+
+from app.core.essentials import BaseSchema
 
 
-class DummyModelDTO(BaseModel):
-    """
-    DTO for dummy models.
-
-    It returned when accessing dummy models from the API.
-    """
+class DummyModelDTO(BaseSchema):
+    """Response DTO returned when reading dummy rows."""
 
     id: int
     name: str
 
-    model_config = ConfigDict(from_attributes=True)
 
-
-class DummyModelInputDTO(BaseModel):
-    """DTO for creating new dummy model."""
+class DummyModelInputDTO(BaseSchema):
+    """Request DTO accepted when creating a new dummy row."""
 
     name: str

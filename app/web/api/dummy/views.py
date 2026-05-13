@@ -1,39 +1,47 @@
-from fastapi import APIRouter
-from fastapi.param_functions import Depends
+"""HTTP entry points for the dummy demo aggregate.
 
-from app.db.dao.dummy_dao import DummyDAO
-from app.db.models.dummy_model import DummyModel
+Routers depend on services, never on repositories or models directly.
+"""
+
+from typing import Annotated
+
+from fastapi import APIRouter, Depends
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.db.dependencies import get_db_session
+from app.repositories.dummy import DummyRepository
+from app.services.dummy import DummyService
 from app.web.api.dummy.schema import DummyModelDTO, DummyModelInputDTO
 
 router = APIRouter()
 
 
-@router.get("/", response_model=list[DummyModelDTO])
+def get_dummy_service(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+) -> DummyService:
+    """Compose ``DummyService`` for FastAPI dependency injection."""
+    return DummyService(DummyRepository(session))
+
+
+DummyServiceDep = Annotated[DummyService, Depends(get_dummy_service)]
+
+
+@router.get("/")
 async def get_dummy_models(
+    service: DummyServiceDep,
     limit: int = 10,
     offset: int = 0,
-    dummy_dao: DummyDAO = Depends(),
-) -> list[DummyModel]:
-    """
-    Retrieve all dummy objects from the database.
-
-    :param limit: limit of dummy objects, defaults to 10.
-    :param offset: offset of dummy objects, defaults to 0.
-    :param dummy_dao: DAO for dummy models.
-    :return: list of dummy objects from database.
-    """
-    return await dummy_dao.get_all_dummies(limit=limit, offset=offset)
+) -> list[DummyModelDTO]:
+    """Return a paginated list of dummy rows."""
+    instances = await service.list_dummies(limit=limit, offset=offset)
+    return [DummyModelDTO.model_validate(row) for row in instances]
 
 
 @router.put("/")
 async def create_dummy_model(
-    new_dummy_object: DummyModelInputDTO,
-    dummy_dao: DummyDAO = Depends(),
-) -> None:
-    """
-    Creates dummy model in the database.
-
-    :param new_dummy_object: new dummy model item.
-    :param dummy_dao: DAO for dummy models.
-    """
-    await dummy_dao.create_dummy_model(name=new_dummy_object.name)
+    payload: DummyModelInputDTO,
+    service: DummyServiceDep,
+) -> DummyModelDTO:
+    """Create a new dummy row and return its DTO."""
+    instance = await service.create_dummy(name=payload.name)
+    return DummyModelDTO.model_validate(instance)
