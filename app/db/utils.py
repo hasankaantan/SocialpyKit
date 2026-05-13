@@ -18,7 +18,7 @@ async def create_database() -> None:
         )
         database_exists = database_existance.scalar() == 1
 
-    if database_exists:
+    if database_exists:  # pragma: no cover
         await drop_database()
 
     async with engine.connect() as conn:

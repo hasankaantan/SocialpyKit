@@ -59,8 +59,7 @@ reportMissingTypeStubs = false
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "session"
 asyncio_default_test_loop_scope = "session"
-# --cov-fail-under=100 is enforced in Faz 3.4 after the test suite is rewritten.
-addopts = "--cov=app --cov-report=term-missing -p no:unraisableexception"
+addopts = "--cov=app --cov-fail-under=100 --cov-report=term-missing -p no:unraisableexception"
 filterwarnings = [
     "error",
     "ignore::DeprecationWarning",
@@ -70,6 +69,15 @@ env = [
     "SOCIALPYKIT_ENVIRONMENT=pytest",
     "SOCIALPYKIT_DB_BASE=socialpykit_test",
     "SOCIALPYKIT_SENTRY_DSN=",
+]
+
+[tool.coverage.run]
+concurrency = ["greenlet", "thread"]
+omit = [
+  "app/__main__.py",         # uvicorn / gunicorn entry point, not exercised under pytest
+  "app/gunicorn_runner.py",  # production worker class, runs only inside gunicorn
+  "app/log.py",              # loguru bridge, configured only in production startup
+  "app/db/migrations/*",     # alembic migration scripts, runtime artefacts
 ]
 
 [tool.coverage.report]

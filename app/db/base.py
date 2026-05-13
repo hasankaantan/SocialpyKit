@@ -40,5 +40,5 @@ def relationship(*args: Any, **kwargs: Any) -> Any:  # noqa: ANN401
     return type is a generic ``Relationship[Any]`` whose precise inference
     is the caller's responsibility via ``Mapped[...]`` on the model side.
     """
-    kwargs.setdefault("lazy", "raise")
-    return _sqlalchemy_relationship(*args, **kwargs)
+    kwargs.setdefault("lazy", "raise")  # pragma: no cover
+    return _sqlalchemy_relationship(*args, **kwargs)  # pragma: no cover

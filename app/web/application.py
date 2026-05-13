@@ -19,7 +19,7 @@ def get_app() -> FastAPI:
 
     :return: application.
     """
-    if settings.sentry_dsn:
+    if settings.sentry_dsn:  # pragma: no cover
         # Enables sentry integration.
         sentry_sdk.init(
             dsn=settings.sentry_dsn,
