@@ -1,0 +1,61 @@
+services:
+  api: &main_app
+    build:
+      context: .
+      target: dev
+      dockerfile: ./Dockerfile
+    image: socialpykit:${SOCIALPYKIT_VERSION:-latest}
+    restart: always
+    ports:
+      # Exposes application port.
+    - "8000:8000"
+    env_file:
+      - path: .env
+        required: false
+    depends_on:
+      db:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+    environment:
+      SOCIALPYKIT_HOST: 0.0.0.0
+      SOCIALPYKIT_RELOAD: "True"
+      SOCIALPYKIT_DB_HOST: socialpykit-db
+      SOCIALPYKIT_DB_PORT: 5432
+      SOCIALPYKIT_DB_USER: socialpykit
+      SOCIALPYKIT_DB_PASS: socialpykit
+      SOCIALPYKIT_DB_BASE: socialpykit
+    volumes:
+      - .:/app/src/
+
+  db:
+    image: postgres:18.3-trixie
+    hostname: socialpykit-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: "socialpykit"
+      POSTGRES_USER: "socialpykit"
+      POSTGRES_DB: "socialpykit"
+    volumes:
+      - socialpykit-db-data:/var/lib/postgresql
+    restart: always
+    healthcheck:
+      test: pg_isready -U socialpykit
+      interval: 2s
+      timeout: 3s
+      retries: 40
+
+  migrator:
+    <<: *main_app
+    restart: "no"
+    command: alembic upgrade head
+    depends_on:
+      db:
+        condition: service_healthy
+
+
+
+volumes:
+  socialpykit-db-data:
+    name: socialpykit-db-data
