@@ -133,18 +133,26 @@ There are two ways to start a new project from SocialpyKit:
 
 The repo is registered as a [GitHub template repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-template-repository). Click **Use this template → Create a new repository** on the GitHub UI to clone the source tree verbatim into a fresh repo under your own account.
 
-After cloning, search-and-replace the project literals listed in [`copier.yaml`](./copier.yaml) under `_manual_rename_targets`:
+After cloning, run the rename script with your project name, display name, and GitHub org:
 
 ```bash
-# core literals to rename in the cloned repo:
-#   socialpykit            -> mykit          (env-var prefix, db name, docker image)
-#   SOCIALPYKIT_           -> MYKIT_         (uppercase env-var prefix)
-#   Socialbug Apps LLC     -> Your Company   (author)
-#   Hasan Kaan Tan         -> You            (maintainer)
-#   hasankaantan          -> your-org       (github org)
+./scripts/rename-project.sh myapi "My API" my-org
 ```
 
-Tip: a quick `git grep -l socialpykit | xargs sed -i '' 's/socialpykit/mykit/g'` (mind the BSD/GNU sed difference) handles most of it, then commit the resulting diff in one atomic refactor.
+The script (`scripts/rename-project.sh`) walks the tree with `git grep` and rewrites every project literal in one pass — env-var prefix, db name, docker image, display name, github org. Review the diff, then commit:
+
+```bash
+git diff                         # sanity check
+git add -A && git commit -m "chore: rename project from socialpykit"
+```
+
+Manual follow-up after the script runs (the script prints these too):
+
+- Update `[project].authors` and `maintainers` in `pyproject.toml`.
+- Update the copyright holder in `LICENSE`.
+- Set your Sentry DSN env var (e.g. `MYAPI_SENTRY_DSN=...`).
+- Regenerate ui types if you touched the API: `just ui-gen-api`.
+- Recreate the dev database so the new credentials take effect: `docker compose down -v && docker compose up -d db`.
 
 ### Option B — Copier (parametrised, recommended for new automation)
 
@@ -258,7 +266,7 @@ SocialpyKit is built in deliberate phases. Each step within a phase is its own c
 | **Phase 3** — Test & coverage | ⏳ | Shared fixtures, unit + integration suites, 100% coverage gate |
 | **Phase 4** — AI / dev experience | ⏳ | `CLAUDE.md` ✅, `AGENTS.md`, `.mcp.json`, `.cursor/` rules |
 | **Phase 5** — Vue 3 frontend (monorepo `ui/`) | ✅ Done | Vite + Pinia + Axios + `openapi-typescript`, bun-managed, ESLint strict |
-| **Phase 6** — Template parameterization | ⏳ | `copier.yaml`, mark as GitHub template repo |
+| **Phase 6** — Template parameterization | ✅ Done (soft) | `copier.yaml` variables, repo marked as GitHub template, `scripts/rename-project.sh` automates the rename |
 
 For the detailed phase-by-phase commit plan, see [`CLAUDE.md`](./CLAUDE.md).
 
