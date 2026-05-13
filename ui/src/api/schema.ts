@@ -13,9 +13,12 @@ export interface paths {
         };
         /**
          * Health Check
-         * @description Checks the health of a project.
+         * @description Verify the application is up and postgres is reachable.
          *
-         *     It returns 200 if the project is healthy.
+         *     Returns 200 with ``status='ok'`` when the database responds to a
+         *     cheap ``SELECT 1``. Returns 503 with ``status='degraded'`` when the
+         *     database is unreachable so load balancers and kubernetes probes can
+         *     drain traffic from the instance.
          */
         get: operations["health_check_api_health_get"];
         put?: never;
@@ -166,6 +169,16 @@ export interface components {
             detail?: components["schemas"]["ValidationError"][];
         };
         /**
+         * HealthResponse
+         * @description Payload returned by ``GET /api/health``.
+         */
+        HealthResponse: {
+            /** Status */
+            status: string;
+            /** Database */
+            database: string;
+        };
+        /**
          * RegisterRequest
          * @description Payload for ``POST /api/auth/register``.
          */
@@ -251,7 +264,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["HealthResponse"];
                 };
             };
         };

@@ -8,14 +8,16 @@
     "/api/health": {
       "get": {
         "summary": "Health Check",
-        "description": "Checks the health of a project.\n\nIt returns 200 if the project is healthy.",
+        "description": "Verify the application is up and postgres is reachable.\n\nReturns 200 with ``status='ok'`` when the database responds to a\ncheap ``SELECT 1``. Returns 503 with ``status='degraded'`` when the\ndatabase is unreachable so load balancers and kubernetes probes can\ndrain traffic from the instance.",
         "operationId": "health_check_api_health_get",
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
               }
             }
           }
@@ -340,6 +342,26 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "HealthResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "database": {
+            "type": "string",
+            "title": "Database"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status",
+          "database"
+        ],
+        "title": "HealthResponse",
+        "description": "Payload returned by ``GET /api/health``."
       },
       "RegisterRequest": {
         "properties": {
