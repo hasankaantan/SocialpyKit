@@ -1,6 +1,6 @@
 """HTTP entry points for the user-management domain."""
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Response, status
 
 from app.api.v1.dependencies.auth import AdminUserDep, CurrentUserDep
 from app.api.v1.dependencies.user import UserServiceDep
@@ -33,3 +33,13 @@ async def update_me(
         current_password=payload.current_password,
     )
     return UserResponse.model_validate(updated)
+
+
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_me(
+    current_user: CurrentUserDep,
+    service: UserServiceDep,
+) -> Response:
+    """Delete the caller's own account."""
+    await service.delete_self(current_user)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

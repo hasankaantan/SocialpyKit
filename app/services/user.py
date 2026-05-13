@@ -64,3 +64,7 @@ class UserService:
             user.email = email
 
         return await self._repository.update(user)
+
+    async def delete_self(self, user: User) -> None:
+        """Delete the caller's own user row."""
+        await self._repository.delete(user.id)

@@ -149,6 +149,16 @@ async def test_update_self_no_op_when_no_fields_supplied() -> None:
     assert result.hashed_password == original_hash
 
 
+async def test_delete_self_removes_the_user() -> None:
+    repository = FakeUserRepository()
+    user = await _seed_user(repository)
+    service = UserService(repository)
+
+    await service.delete_self(user)
+
+    assert await repository.get(user.id) is None
+
+
 async def test_update_self_allows_setting_email_to_current_value() -> None:
     """Setting email to its current value is a no-op, not a conflict."""
     repository = FakeUserRepository()

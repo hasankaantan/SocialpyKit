@@ -170,6 +170,35 @@ async def test_update_me_rejects_wrong_current_password(
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
+async def test_delete_me_removes_the_account(
+    fastapi_app: FastAPI,
+    client: AsyncClient,
+    dbsession: AsyncSession,
+) -> None:
+    email, token = await register_and_login(
+        fastapi_app=fastapi_app,
+        client=client,
+        dbsession=dbsession,
+    )
+    delete_url = fastapi_app.url_path_for("delete_me")
+    login_url = fastapi_app.url_path_for("login")
+    me_url = fastapi_app.url_path_for("get_me")
+
+    response = await client.delete(delete_url, headers=auth_header(token))
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    # The token references a user that no longer exists
+    me_response = await client.get(me_url, headers=auth_header(token))
+    assert me_response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    # And the password no longer logs in (user is gone)
+    login_response = await client.post(
+        login_url,
+        data={"username": email, "password": "secret-password-123"},
+    )
+    assert login_response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
 async def test_update_me_rejects_duplicate_email(
     fastapi_app: FastAPI,
     client: AsyncClient,
