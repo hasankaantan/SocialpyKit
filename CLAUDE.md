@@ -378,12 +378,91 @@ Steps and commits:
 
 2. Parametrize all hardcoded project names in files
    `refactor: replace hardcoded project names with copier variables`
+   **Skipped** — drift-maintenance trade-off favoured `scripts/rename-project.sh`
+   over Jinja-rendered template. See README "Using This Template".
 
 3. Add `copier` usage instructions to README
    `docs: add copier usage to readme`
 
 4. Mark repo as GitHub template repository
    `chore: mark repository as github template`
+
+---
+
+### Faz 7 — Auth + Admin Dashboard
+
+JWT scaffolding ships in two halves: the backend RBAC + CRUD surface,
+then a shadcn-vue dashboard that drives it. The frontend uses
+`vue-router` for client-side routing, `vee-validate + zod` for typed
+forms, `Pinia` for the auth store, and the Reka UI / shadcn-vue
+component set.
+
+Backend conventions:
+
+- `app/db/models/user.py` defines the `User` ORM model and `UserRole`
+  StrEnum (`USER`, `ADMIN`). The role column is `String(16)` (not
+  Postgres ENUM) so the enum can grow without an `ALTER TYPE`.
+- `app/api/v1/dependencies/auth.py` exposes `get_admin_user` /
+  `AdminUserDep` — the canonical seam for gating admin routes.
+  Comparison is `!=` (not `is not`); SQLAlchemy hands back the role as
+  a raw string, identity comparison against the enum would lie.
+- `app/services/user.py` (`UserService`) is separate from
+  `app/services/auth.py` (`AuthService`). Auth = register / login /
+  token resolution; user = list / self-update / self-delete /
+  admin-update / admin-delete.
+- Password rotation requires `current_password`; admins cannot
+  overwrite another user's password (only role / is_active / email).
+- `scripts/promote_admin.py` + `just promote-admin <email>` is the
+  bootstrap path. The justfile recipe must prepend `PYTHONPATH=.`;
+  `uv run` does not add the project root to `sys.path` for
+  scripts/ unless told to.
+- CORS is enabled via `CORSMiddleware` in
+  `app/core/server/factory.py`, allow-list driven by
+  `settings.cors_origins` (defaults to `http://localhost:5173`).
+  Without it the vite dev server gets `Network Error` on preflight.
+
+Frontend conventions:
+
+- `ui/src/router/index.ts` owns the route table, route meta
+  (`requiresAuth`, `requiresAdmin`, `publicOnly`), and the single
+  `beforeEach` guard that hydrates the user on first hit, redirects
+  authenticated traffic away from `/login` and `/register`, and gates
+  admin-only routes.
+- `ui/src/stores/auth.ts` (Pinia) holds the bearer token (persisted in
+  `localStorage` under `socialpykit_token`) and the current user.
+  An axios interceptor in `ui/src/api/client.ts` attaches the token
+  to every request, so endpoint code stays branch-free.
+- Forms use `vee-validate` `useForm<T>` with `toTypedSchema(z.object({...}))`.
+  When zod's inference leaks `unknown` through `toTypedSchema`, declare
+  an explicit `interface FormValues { ... }` and pass `useForm<FormValues>(...)`.
+- shadcn-vue components live under `ui/src/components/ui/`. The
+  upstream Sonner template binds `:toast-options` and `v-bind="props"`
+  twice; the local copy fixes this by destructuring `toastOptions`
+  from the props before spreading. Keep that patch on every
+  `bunx shadcn-vue add` round-trip.
+- `<form>` must wrap `<Card>`, not sit inside it. Card v4 sets
+  `gap-4` on direct children; a `<form>` between Card and CardHeader/
+  CardContent collapses the gap and the description glues to the
+  input.
+- Eslint config in `ui/eslint.config.ts` has scoped overrides for
+  `src/components/ui/**` (off: `multi-word-component-names`,
+  `require-default-prop`) and a global `_`-prefix ignore rule for
+  `no-unused-vars`. Both are required by shadcn conventions.
+
+Pipeline ergonomics:
+
+- `ui/src/lib/` must be uningored explicitly — the project-level
+  `.gitignore` matches Python's `lib/` artefact rule, which also
+  catches the frontend's shadcn helpers. Negation block `!ui/src/lib/`
+  + `!ui/src/lib/**` keeps `cn()` and friends in source control.
+- `tsconfig.app.json` needs `baseUrl: "."` + `ignoreDeprecations: "6.0"`
+  for `vue-tsc -b` (references mode) to resolve `paths`. Drop either
+  and CI fails with `Cannot find module '@/lib/utils'` while local
+  builds pass off vite's alias.
+- `shadcn-vue add` rewrites `ui/package.json` and silently drops
+  unrelated runtime deps (notably `vue-router`, observed in B4).
+  After every batch of `add` calls, diff `package.json` to confirm
+  nothing went missing.
 
 ---
 

@@ -144,6 +144,8 @@ cython_debug/
 # Claude Code local session state
 .claude/
 tasks/
+memory/
+MEMORY.md
 
 # Node / Vue frontend artefacts
 node_modules/
