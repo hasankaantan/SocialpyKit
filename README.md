@@ -1,5 +1,14 @@
 # SocialpyKit
 
+[![Backend CI](https://github.com/hasankaantan/SocialpyKit/actions/workflows/tests.yml/badge.svg)](https://github.com/hasankaantan/SocialpyKit/actions/workflows/tests.yml)
+[![Frontend CI](https://github.com/hasankaantan/SocialpyKit/actions/workflows/frontend.yml/badge.svg)](https://github.com/hasankaantan/SocialpyKit/actions/workflows/frontend.yml)
+[![License: MIT](https://img.shields.io/github/license/hasankaantan/SocialpyKit?color=blue)](./LICENSE)
+[![Python 3.13+](https://img.shields.io/badge/python-3.13%2B-blue)](https://www.python.org/downloads/)
+[![Type checked: mypy + pyright](https://img.shields.io/badge/type%20checked-mypy%20%2B%20pyright-blue)](https://github.com/python/mypy)
+[![Linter: ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Coverage: 100%](https://img.shields.io/badge/coverage-100%25-brightgreen)](./tests)
+[![Template repo](https://img.shields.io/badge/template-use_this_template-success)](https://github.com/hasankaantan/SocialpyKit/generate)
+
 > FastAPI starter kit — strict types, immutable schemas, async SQLAlchemy, 100% coverage gate. Python's answer to [nunomaduro/laravel-starter-kit](https://github.com/nunomaduro/laravel-starter-kit). Phased build, Conventional Commits.
 
 Production-grade FastAPI starter engineered by **Socialbug Apps LLC**. Built on top of [s3rius/FastAPI-template](https://github.com/s3rius/FastAPI-template) and layered with a services / repositories architecture, ultra-strict tooling, and a fail-fast philosophy.
