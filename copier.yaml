@@ -71,5 +71,5 @@ _manual_rename_targets:
   - "SOCIALPYKIT_"          # uppercase env-var prefix
   - "Socialbug Apps LLC"    # author
   - "Hasan Kaan Tan"        # maintainer
-  - "socialbugapps"         # github org
+  - "hasankaantan"         # github org
   - "socialpykit.web"       # only if you also rename the package directory

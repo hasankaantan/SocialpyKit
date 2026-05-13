@@ -360,4 +360,4 @@ Steps and commits:
 **Socialbug Apps LLC** — Hasan Kaan Tan
 Stack lead: Laravel → FastAPI migration
 Standards: PHPStan-equivalent strictness, Pest-equivalent coverage, SOLID, DRY, Conventional Commits
-Repo: github.com/socialbugapps/socialpykit
+Repo: github.com/hasankaantan/socialpykit

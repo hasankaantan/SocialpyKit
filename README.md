@@ -132,7 +132,7 @@ After cloning, search-and-replace the project literals listed in [`copier.yaml`]
 #   SOCIALPYKIT_           -> MYKIT_         (uppercase env-var prefix)
 #   Socialbug Apps LLC     -> Your Company   (author)
 #   Hasan Kaan Tan         -> You            (maintainer)
-#   socialbugapps          -> your-org       (github org)
+#   hasankaantan          -> your-org       (github org)
 ```
 
 Tip: a quick `git grep -l socialpykit | xargs sed -i '' 's/socialpykit/mykit/g'` (mind the BSD/GNU sed difference) handles most of it, then commit the resulting diff in one atomic refactor.
@@ -142,7 +142,7 @@ Tip: a quick `git grep -l socialpykit | xargs sed -i '' 's/socialpykit/mykit/g'`
 `copier.yaml` declares the variables a future copier render would prompt for (project name, slug, author, sentry toggle, etc.). The source tree is **not yet parametrised** with Jinja, so `copier copy` against `main` is the same as Option A for now. Once the `template` branch ships, you'll be able to:
 
 ```bash
-uvx copier copy gh:socialbugapps/socialpykit@template ./my-new-service
+uvx copier copy gh:hasankaantan/socialpykit@template ./my-new-service
 ```
 
 Until then, prefer Option A.
@@ -161,7 +161,7 @@ Until then, prefer Option A.
 ### Setup
 
 ```bash
-git clone git@github.com:socialbugapps/socialpykit.git
+git clone git@github.com:hasankaantan/socialpykit.git
 cd socialpykit
 
 # 1. install dependencies into a .venv
@@ -353,6 +353,6 @@ TBD. Until a license is added, this repository is provided **as-is** for referen
 
 ## Maintainers
 
-**Socialbug Apps LLC** — Hasan Kaan Tan ([@socialbugapps](https://github.com/socialbugapps))
+**Socialbug Apps LLC** — Hasan Kaan Tan ([@hasankaantan](https://github.com/hasankaantan))
 
 Stack lead: Laravel → FastAPI migration. Standards: PHPStan-equivalent strictness, Pest-equivalent coverage, SOLID, DRY, Conventional Commits.
