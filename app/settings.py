@@ -46,6 +46,10 @@ class Settings(BaseSettings):
     db_base: str = "socialpykit"
     db_echo: bool = False
 
+    # Rate limiting (slowapi). Disabled under pytest so the auth integration
+    # suite is not subject to the per-IP limits documented on the routes.
+    rate_limit_enabled: bool = True
+
     # JWT auth configuration.
     # In production, jwt_secret_key MUST come from the environment
     # (SOCIALPYKIT_JWT_SECRET_KEY). The default below is only for local dev

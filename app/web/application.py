@@ -17,6 +17,7 @@ from app.core.exceptions import (
 from app.settings import settings
 from app.web.api.router import api_router
 from app.web.lifespan import lifespan_setup
+from app.web.rate_limit import register_rate_limiter
 
 
 async def handle_not_found(_: Request, exc: NotFoundError) -> JSONResponse:
@@ -97,6 +98,8 @@ def get_app() -> FastAPI:
         redoc_url="/api/redoc",
         openapi_url="/api/openapi.json",
     )
+
+    register_rate_limiter(app)
 
     # Main router for the API.
     app.include_router(router=api_router, prefix="/api")

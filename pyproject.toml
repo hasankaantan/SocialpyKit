@@ -27,6 +27,7 @@ dependencies = [
   "bcrypt>=5.0.0",
   "email-validator>=2.3.0",
   "python-multipart>=0.0.28",
+  "slowapi>=0.1.9",
 ]
 
 [dependency-groups]
@@ -75,6 +76,7 @@ env = [
     "SOCIALPYKIT_ENVIRONMENT=pytest",
     "SOCIALPYKIT_DB_BASE=socialpykit_test",
     "SOCIALPYKIT_SENTRY_DSN=",
+    "SOCIALPYKIT_RATE_LIMIT_ENABLED=false",
 ]
 
 [tool.coverage.run]
