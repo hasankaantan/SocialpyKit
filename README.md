@@ -271,11 +271,12 @@ SocialpyKit is built in deliberate phases. Each step within a phase is its own c
 |-------|--------|-------|
 | **Phase 0** — Base template | ✅ Done | `fastapi_template` scaffold, cleanup, Python 3.13 pin |
 | **Phase 1** — Tooling | ✅ Done | Strict `pyproject.toml`, `justfile`, pre-commit, pipeline verification |
-| **Phase 2** — Architecture refactor | 🚧 In progress | `essentials.py`, exception hierarchy, services / repositories, `whenever` migration |
-| **Phase 3** — Test & coverage | ⏳ | Shared fixtures, unit + integration suites, 100% coverage gate |
-| **Phase 4** — AI / dev experience | ⏳ | `CLAUDE.md` ✅, `AGENTS.md`, `.mcp.json`, `.cursor/` rules |
+| **Phase 2** — Architecture refactor | ✅ Done | `essentials.py`, exception hierarchy, services / repositories, `whenever` migration |
+| **Phase 3** — Test & coverage | ✅ Done | Shared fixtures, unit + integration suites, 100% coverage gate enforced |
+| **Phase 4** — AI / dev experience | ✅ Done | `CLAUDE.md`, `AGENTS.md`, `.mcp.json`, `.cursor/` rules |
 | **Phase 5** — Vue 3 frontend (monorepo `ui/`) | ✅ Done | Vite + Pinia + Axios + `openapi-typescript`, bun-managed, ESLint strict |
 | **Phase 6** — Template parameterization | ✅ Done (soft) | `copier.yaml` variables, repo marked as GitHub template, `scripts/rename-project.sh` automates the rename |
+| **Phase 7** — Auth + dashboard | ✅ Done | JWT register/login/me, user RBAC with admin role, self profile update + delete, admin user CRUD, shadcn-vue dashboard with sidebar, vee-validate forms, vue-router auth/admin guards |
 
 For the detailed phase-by-phase commit plan, see [`CLAUDE.md`](./CLAUDE.md).
 
