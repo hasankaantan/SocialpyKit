@@ -8,6 +8,7 @@ from whenever import Instant
 from app.core.exceptions import (
     AlreadyExistsError,
     AuthenticationError,
+    NotFoundError,
     ValidationError,
 )
 from app.core.security import hash_password
@@ -168,3 +169,78 @@ async def test_update_self_allows_setting_email_to_current_value() -> None:
     result = await service.update_self(user, email="alice@example.com")
 
     assert result.email == "alice@example.com"
+
+
+# ---- admin actions ---------------------------------------------------------
+
+
+async def test_update_as_admin_changes_all_fields() -> None:
+    repository = FakeUserRepository()
+    target = await _seed_user(repository)
+    service = UserService(repository)
+
+    result = await service.update_as_admin(
+        target.id,
+        email="new@example.com",
+        is_active=False,
+        role=UserRole.ADMIN,
+    )
+
+    assert result.email == "new@example.com"
+    assert result.is_active is False
+    assert result.role == UserRole.ADMIN
+
+
+async def test_update_as_admin_no_op_when_no_fields_supplied() -> None:
+    repository = FakeUserRepository()
+    target = await _seed_user(repository, email="alice@example.com")
+    service = UserService(repository)
+    original_email = target.email
+
+    result = await service.update_as_admin(target.id)
+
+    assert result.email == original_email
+
+
+async def test_update_as_admin_allows_setting_email_to_current_value() -> None:
+    repository = FakeUserRepository()
+    target = await _seed_user(repository, email="alice@example.com")
+    service = UserService(repository)
+
+    result = await service.update_as_admin(target.id, email="alice@example.com")
+
+    assert result.email == "alice@example.com"
+
+
+async def test_update_as_admin_raises_when_target_missing() -> None:
+    service = UserService(FakeUserRepository())
+
+    with pytest.raises(NotFoundError):
+        await service.update_as_admin(9999, email="x@example.com")
+
+
+async def test_update_as_admin_rejects_email_collision() -> None:
+    repository = FakeUserRepository()
+    target = await _seed_user(repository, email="alice@example.com")
+    await _seed_user(repository, email="taken@example.com")
+    service = UserService(repository)
+
+    with pytest.raises(AlreadyExistsError):
+        await service.update_as_admin(target.id, email="taken@example.com")
+
+
+async def test_delete_as_admin_removes_the_target() -> None:
+    repository = FakeUserRepository()
+    target = await _seed_user(repository)
+    service = UserService(repository)
+
+    await service.delete_as_admin(target.id)
+
+    assert await repository.get(target.id) is None
+
+
+async def test_delete_as_admin_raises_when_target_missing() -> None:
+    service = UserService(FakeUserRepository())
+
+    with pytest.raises(NotFoundError):
+        await service.delete_as_admin(9999)

@@ -4,7 +4,7 @@ from fastapi import APIRouter, Response, status
 
 from app.api.v1.dependencies.auth import AdminUserDep, CurrentUserDep
 from app.api.v1.dependencies.user import UserServiceDep
-from app.schemas.auth import UserResponse, UserUpdateRequest
+from app.schemas.auth import AdminUserUpdateRequest, UserResponse, UserUpdateRequest
 
 router = APIRouter()
 
@@ -42,4 +42,32 @@ async def delete_me(
 ) -> Response:
     """Delete the caller's own account."""
     await service.delete_self(current_user)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.patch("/{user_id}")
+async def update_user_as_admin(
+    user_id: int,
+    payload: AdminUserUpdateRequest,
+    _admin: AdminUserDep,
+    service: UserServiceDep,
+) -> UserResponse:
+    """Admin-only update of any user."""
+    updated = await service.update_as_admin(
+        user_id,
+        email=payload.email,
+        is_active=payload.is_active,
+        role=payload.role,
+    )
+    return UserResponse.model_validate(updated)
+
+
+@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_user_as_admin(
+    user_id: int,
+    _admin: AdminUserDep,
+    service: UserServiceDep,
+) -> Response:
+    """Admin-only delete of any user."""
+    await service.delete_as_admin(user_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

@@ -10,10 +10,11 @@ from collections.abc import Sequence
 from app.core.exceptions import (
     AlreadyExistsError,
     AuthenticationError,
+    NotFoundError,
     ValidationError,
 )
 from app.core.security import hash_password, verify_password
-from app.db.models.user import User
+from app.db.models.user import User, UserRole
 from app.repositories.user import UserRepository
 
 
@@ -68,3 +69,45 @@ class UserService:
     async def delete_self(self, user: User) -> None:
         """Delete the caller's own user row."""
         await self._repository.delete(user.id)
+
+    async def update_as_admin(
+        self,
+        user_id: int,
+        *,
+        email: str | None = None,
+        is_active: bool | None = None,
+        role: UserRole | None = None,
+    ) -> User:
+        """Apply an admin-controlled partial update to ``user_id``.
+
+        Raises :class:`NotFoundError` if the target does not exist and
+        :class:`AlreadyExistsError` if the new email collides with
+        another user.
+        """
+        target = await self._repository.get(user_id)
+        if target is None:
+            message = f"User {user_id} not found"
+            raise NotFoundError(message, context={"user_id": user_id})
+
+        if email is not None and email != target.email:
+            existing = await self._repository.get_by_email(email)
+            if existing is not None and existing.id != target.id:
+                message = "A user with this email already exists"
+                raise AlreadyExistsError(message, context={"email": email})
+            target.email = email
+
+        if is_active is not None:
+            target.is_active = is_active
+
+        if role is not None:
+            target.role = role
+
+        return await self._repository.update(target)
+
+    async def delete_as_admin(self, user_id: int) -> None:
+        """Delete ``user_id``; raises :class:`NotFoundError` if missing."""
+        target = await self._repository.get(user_id)
+        if target is None:
+            message = f"User {user_id} not found"
+            raise NotFoundError(message, context={"user_id": user_id})
+        await self._repository.delete(user_id)

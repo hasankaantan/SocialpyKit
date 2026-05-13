@@ -6,6 +6,7 @@ from typing import Final
 from pydantic import EmailStr, Field
 
 from app.core.essentials import BaseSchema
+from app.db.models.user import UserRole
 
 # Bcrypt cannot hash inputs longer than 72 bytes (see app.core.security).
 # Reject oversize passwords at the api boundary rather than letting them
@@ -75,3 +76,16 @@ class UserUpdateRequest(BaseSchema):
         max_length=_PASSWORD_MAX_LENGTH,
     )
     current_password: str | None = None
+
+
+class AdminUserUpdateRequest(BaseSchema):
+    """Payload for ``PATCH /api/users/{user_id}``.
+
+    Admin-only fields: email, is_active, and role. Password rotation
+    goes through the self-update endpoint with current_password so an
+    admin cannot silently overwrite another user's credential.
+    """
+
+    email: EmailStr | None = None
+    is_active: bool | None = None
+    role: UserRole | None = None

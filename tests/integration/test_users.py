@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette import status
 
 from app.db.models.user import UserRole
+from app.repositories.user import UserRepository
 from tests.integration._helpers import auth_header, register_and_login
 
 
@@ -223,3 +224,125 @@ async def test_update_me_rejects_duplicate_email(
     )
 
     assert response.status_code == status.HTTP_409_CONFLICT
+
+
+# ---- admin actions ---------------------------------------------------------
+
+
+async def test_admin_can_update_another_user(
+    fastapi_app: FastAPI,
+    client: AsyncClient,
+    dbsession: AsyncSession,
+) -> None:
+    _, admin_token = await register_and_login(
+        fastapi_app=fastapi_app,
+        client=client,
+        dbsession=dbsession,
+        role=UserRole.ADMIN,
+    )
+    target_email, _ = await register_and_login(
+        fastapi_app=fastapi_app,
+        client=client,
+        dbsession=dbsession,
+    )
+    target = await UserRepository(dbsession).get_by_email(target_email)
+    assert target is not None
+    url = fastapi_app.url_path_for("update_user_as_admin", user_id=target.id)
+
+    response = await client.patch(
+        url,
+        headers=auth_header(admin_token),
+        json={"is_active": False, "role": "admin"},
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    body = response.json()
+    assert body["is_active"] is False
+    assert body["role"] == "admin"
+
+
+async def test_admin_update_rejects_non_admin_caller(
+    fastapi_app: FastAPI,
+    client: AsyncClient,
+    dbsession: AsyncSession,
+) -> None:
+    _, regular_token = await register_and_login(
+        fastapi_app=fastapi_app,
+        client=client,
+        dbsession=dbsession,
+    )
+    url = fastapi_app.url_path_for("update_user_as_admin", user_id=1)
+
+    response = await client.patch(
+        url,
+        headers=auth_header(regular_token),
+        json={"is_active": False},
+    )
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+
+
+async def test_admin_update_returns_404_for_missing_user(
+    fastapi_app: FastAPI,
+    client: AsyncClient,
+    dbsession: AsyncSession,
+) -> None:
+    _, admin_token = await register_and_login(
+        fastapi_app=fastapi_app,
+        client=client,
+        dbsession=dbsession,
+        role=UserRole.ADMIN,
+    )
+    url = fastapi_app.url_path_for("update_user_as_admin", user_id=99999)
+
+    response = await client.patch(
+        url,
+        headers=auth_header(admin_token),
+        json={"is_active": False},
+    )
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+async def test_admin_can_delete_another_user(
+    fastapi_app: FastAPI,
+    client: AsyncClient,
+    dbsession: AsyncSession,
+) -> None:
+    _, admin_token = await register_and_login(
+        fastapi_app=fastapi_app,
+        client=client,
+        dbsession=dbsession,
+        role=UserRole.ADMIN,
+    )
+    target_email, _ = await register_and_login(
+        fastapi_app=fastapi_app,
+        client=client,
+        dbsession=dbsession,
+    )
+    target = await UserRepository(dbsession).get_by_email(target_email)
+    assert target is not None
+    url = fastapi_app.url_path_for("delete_user_as_admin", user_id=target.id)
+
+    response = await client.delete(url, headers=auth_header(admin_token))
+
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+    assert await UserRepository(dbsession).get(target.id) is None
+
+
+async def test_admin_delete_returns_404_for_missing_user(
+    fastapi_app: FastAPI,
+    client: AsyncClient,
+    dbsession: AsyncSession,
+) -> None:
+    _, admin_token = await register_and_login(
+        fastapi_app=fastapi_app,
+        client=client,
+        dbsession=dbsession,
+        role=UserRole.ADMIN,
+    )
+    url = fastapi_app.url_path_for("delete_user_as_admin", user_id=99999)
+
+    response = await client.delete(url, headers=auth_header(admin_token))
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
