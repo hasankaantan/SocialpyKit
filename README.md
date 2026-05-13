@@ -347,7 +347,7 @@ PRs that ignore these rules will be sent back. PRs that follow them tend to merg
 
 ## License
 
-TBD. Until a license is added, this repository is provided **as-is** for reference. Open an issue if you have a preferred license; MIT is the most likely default.
+MIT — see [`LICENSE`](./LICENSE). Copyright © 2026 Socialbug Apps LLC.
 
 ---
 
