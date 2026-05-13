@@ -7,7 +7,8 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.v1.dependencies.db import get_db_session
-from app.db.models.user import User
+from app.core.exceptions import AuthorizationError
+from app.db.models.user import User, UserRole
 from app.repositories.user import UserRepository
 from app.services.auth import AuthService
 
@@ -35,3 +36,18 @@ async def get_current_user(
 
 
 CurrentUserDep = Annotated[User, Depends(get_current_user)]
+
+
+async def get_admin_user(current_user: CurrentUserDep) -> User:
+    """Allow the request through only if the resolved user is an admin.
+
+    Raises :class:`AuthorizationError` (mapped to HTTP 403 by the global
+    handler) when the user lacks the admin role.
+    """
+    if current_user.role is not UserRole.ADMIN:
+        message = "Admin role required for this action"
+        raise AuthorizationError(message, context={"user_id": current_user.id})
+    return current_user
+
+
+AdminUserDep = Annotated[User, Depends(get_admin_user)]
