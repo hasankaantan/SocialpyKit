@@ -56,4 +56,22 @@ class UserResponse(BaseSchema):
     id: int
     email: EmailStr
     is_active: bool
+    role: str
     created_at: datetime
+
+
+class UserUpdateRequest(BaseSchema):
+    """Payload for ``PATCH /api/users/me``.
+
+    All fields are optional; supply only the ones to change. When
+    ``new_password`` is provided, ``current_password`` is required so a
+    stolen token alone cannot rotate the password.
+    """
+
+    email: EmailStr | None = None
+    new_password: str | None = Field(
+        default=None,
+        min_length=_PASSWORD_MIN_LENGTH,
+        max_length=_PASSWORD_MAX_LENGTH,
+    )
+    current_password: str | None = None

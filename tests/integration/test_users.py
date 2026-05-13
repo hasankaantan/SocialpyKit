@@ -61,3 +61,136 @@ async def test_list_users_rejects_unauthenticated_with_401(
     response = await client.get(url)
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+async def test_update_me_changes_email(
+    fastapi_app: FastAPI,
+    client: AsyncClient,
+    dbsession: AsyncSession,
+) -> None:
+    _, token = await register_and_login(
+        fastapi_app=fastapi_app,
+        client=client,
+        dbsession=dbsession,
+    )
+    url = fastapi_app.url_path_for("update_me")
+
+    response = await client.patch(
+        url,
+        headers=auth_header(token),
+        json={"email": "updated@example.com"},
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()["email"] == "updated@example.com"
+
+
+async def test_update_me_changes_password_and_invalidates_old_one(
+    fastapi_app: FastAPI,
+    client: AsyncClient,
+    dbsession: AsyncSession,
+) -> None:
+    email, token = await register_and_login(
+        fastapi_app=fastapi_app,
+        client=client,
+        dbsession=dbsession,
+        password="old-password-123",
+    )
+    update_url = fastapi_app.url_path_for("update_me")
+    login_url = fastapi_app.url_path_for("login")
+
+    response = await client.patch(
+        update_url,
+        headers=auth_header(token),
+        json={
+            "new_password": "new-password-456",
+            "current_password": "old-password-123",
+        },
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+
+    # The old password no longer works
+    old_pw_login = await client.post(
+        login_url,
+        data={"username": email, "password": "old-password-123"},
+    )
+    assert old_pw_login.status_code == status.HTTP_401_UNAUTHORIZED
+
+    # The new password does
+    new_pw_login = await client.post(
+        login_url,
+        data={"username": email, "password": "new-password-456"},
+    )
+    assert new_pw_login.status_code == status.HTTP_200_OK
+
+
+async def test_update_me_rejects_password_change_without_current(
+    fastapi_app: FastAPI,
+    client: AsyncClient,
+    dbsession: AsyncSession,
+) -> None:
+    _, token = await register_and_login(
+        fastapi_app=fastapi_app,
+        client=client,
+        dbsession=dbsession,
+    )
+    url = fastapi_app.url_path_for("update_me")
+
+    response = await client.patch(
+        url,
+        headers=auth_header(token),
+        json={"new_password": "new-strong-pw"},
+    )
+
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
+async def test_update_me_rejects_wrong_current_password(
+    fastapi_app: FastAPI,
+    client: AsyncClient,
+    dbsession: AsyncSession,
+) -> None:
+    _, token = await register_and_login(
+        fastapi_app=fastapi_app,
+        client=client,
+        dbsession=dbsession,
+    )
+    url = fastapi_app.url_path_for("update_me")
+
+    response = await client.patch(
+        url,
+        headers=auth_header(token),
+        json={
+            "new_password": "new-strong-pw",
+            "current_password": "wrong-current-pw",
+        },
+    )
+
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+async def test_update_me_rejects_duplicate_email(
+    fastapi_app: FastAPI,
+    client: AsyncClient,
+    dbsession: AsyncSession,
+) -> None:
+    first_email, _ = await register_and_login(
+        fastapi_app=fastapi_app,
+        client=client,
+        dbsession=dbsession,
+    )
+    _, second_token = await register_and_login(
+        fastapi_app=fastapi_app,
+        client=client,
+        dbsession=dbsession,
+    )
+    url = fastapi_app.url_path_for("update_me")
+
+    response = await client.patch(
+        url,
+        headers=auth_header(second_token),
+        json={"email": first_email},
+    )
+
+    assert response.status_code == status.HTTP_409_CONFLICT

@@ -55,6 +55,7 @@ def test_user_response_omits_hashed_password() -> None:
         id=1,
         email="alice@example.com",
         is_active=True,
+        role="user",
         created_at=datetime(2026, 1, 1, tzinfo=UTC),
     )
 
