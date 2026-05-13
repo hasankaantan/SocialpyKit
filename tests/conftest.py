@@ -24,7 +24,7 @@ from sqlalchemy.ext.asyncio import (
     create_async_engine,
 )
 
-from app.db.dependencies import get_db_session
+from app.api.v1.dependencies.db import get_db_session
 from app.db.models.dummy_model import DummyModel
 from app.db.utils import create_database, drop_database
 from app.settings import settings

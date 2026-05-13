@@ -6,7 +6,7 @@ from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.dependencies import get_db_session
+from app.api.v1.dependencies.db import get_db_session
 from app.db.models.user import User
 from app.repositories.user import UserRepository
 from app.services.auth import AuthService

@@ -1,7 +1,7 @@
 """Request rate limiting wired through slowapi.
 
 Limits are documented on the individual route decorators in
-``app.web.api.auth.views``. This module owns the shared :class:`Limiter`
+``app.api.v1.routers.auth``. This module owns the shared :class:`Limiter`
 instance and the integration glue (middleware + exception handler) that
 :func:`app.web.application.get_app` calls during startup.
 

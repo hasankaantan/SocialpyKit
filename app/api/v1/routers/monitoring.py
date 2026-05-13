@@ -7,8 +7,8 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.v1.dependencies.db import get_db_session
 from app.core.essentials import BaseSchema
-from app.db.dependencies import get_db_session
 
 router = APIRouter()
 

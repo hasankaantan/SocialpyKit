@@ -8,10 +8,10 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.db.dependencies import get_db_session
+from app.api.v1.dependencies.db import get_db_session
 from app.repositories.dummy import DummyRepository
+from app.schemas.dummy import DummyModelDTO, DummyModelInputDTO
 from app.services.dummy import DummyService
-from app.web.api.dummy.schema import DummyModelDTO, DummyModelInputDTO
 
 router = APIRouter()
 

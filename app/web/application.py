@@ -7,6 +7,7 @@ from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 
+from app.api.v1.router import api_router
 from app.core.exceptions import (
     AlreadyExistsError,
     AuthenticationError,
@@ -15,7 +16,6 @@ from app.core.exceptions import (
     ValidationError,
 )
 from app.settings import settings
-from app.web.api.router import api_router
 from app.web.lifespan import lifespan_setup
 from app.web.rate_limit import register_rate_limiter
 

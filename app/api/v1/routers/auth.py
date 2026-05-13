@@ -5,8 +5,8 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Request
 from fastapi.security import OAuth2PasswordRequestForm
 
+from app.api.v1.dependencies.auth import AuthServiceDep, CurrentUserDep
 from app.schemas.auth import RegisterRequest, TokenResponse, UserResponse
-from app.web.api.auth.dependencies import AuthServiceDep, CurrentUserDep
 from app.web.rate_limit import limiter
 
 router = APIRouter()

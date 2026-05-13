@@ -1,6 +1,6 @@
 from fastapi.routing import APIRouter
 
-from app.web.api import auth, dummy, monitoring
+from app.api.v1.routers import auth, dummy, monitoring
 
 api_router = APIRouter()
 api_router.include_router(monitoring.router)
