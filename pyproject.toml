@@ -25,6 +25,7 @@ dependencies = [
   "whenever>=0.10.0",
   "pyjwt>=2.12.1",
   "bcrypt>=5.0.0",
+  "email-validator>=2.3.0",
 ]
 
 [dependency-groups]
@@ -113,6 +114,8 @@ ignore = [
     "S101",    # Use of assert detected
     "PLC0415", # Import outside toplevel
     "PLR2004", # Magic value in comparison — readable inside assertions
+    "S105",    # Password literals — unavoidable in auth test fixtures
+    "S106",    # Password kwargs — same reason
 ]
 "app/gunicorn_runner.py" = [
     "ANN401",  # Any in **kwargs — gunicorn BaseApplication API requires it

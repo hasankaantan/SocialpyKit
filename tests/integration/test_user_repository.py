@@ -11,7 +11,7 @@ from app.repositories.user import UserRepository
 def _build_user(email: str | None = None) -> User:
     return User(
         email=email or f"{uuid.uuid4().hex}@example.com",
-        hashed_password="$2b$12$placeholder.hash.value.for.testing.purposes.only.x",  # noqa: S106 — opaque test fixture, not a real credential
+        hashed_password="$2b$12$placeholder.hash.value.for.testing.purposes.only.x",
     )
 
 
