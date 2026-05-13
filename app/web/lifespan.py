@@ -29,7 +29,7 @@ def _setup_db(app: FastAPI) -> None:  # pragma: no cover
 @asynccontextmanager
 async def lifespan_setup(
     app: FastAPI,
-) -> AsyncGenerator[None, None]:  # pragma: no cover
+) -> AsyncGenerator[None]:  # pragma: no cover
     """
     Actions to run on application startup.
 

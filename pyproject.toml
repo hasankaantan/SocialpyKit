@@ -19,6 +19,7 @@ dependencies = [
   "asyncpg >=0.31.0,<1",
   "httptools >=0.7.1,<1",
   "sentry-sdk >=2.46.0,<3",
+  "loguru>=0.7.3",
 ]
 
 [dependency-groups]
@@ -32,6 +33,7 @@ dev = [
   "mypy >=1.19.0,<2",
   "pyright >=1.1,<2",
   "pre-commit >=4.5.0,<5",
+  "types-gunicorn>=26.0.0.20260510",
 ]
 
 

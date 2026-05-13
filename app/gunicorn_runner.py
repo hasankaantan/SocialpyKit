@@ -7,7 +7,7 @@ from uvicorn.workers import UvicornWorker as BaseUvicornWorker
 try:
     import uvloop
 except ImportError:
-    uvloop = None  # type: ignore
+    uvloop = None  # type: ignore[assignment]
 
 
 class UvicornWorker(BaseUvicornWorker):
@@ -66,14 +66,8 @@ class GunicornApplication(BaseApplication):
             if key in self.cfg.settings and value is not None:
                 self.cfg.set(key.lower(), value)
 
-    def load(self) -> str:
-        """
-        Load actual application.
-
-        Gunicorn loads application based on this
-        function's returns. We return python's path to
-        the app's factory.
-
-        :returns: python path to app factory.
-        """
-        return import_app(self.app)
+    def load(self) -> str:  # type: ignore[override]
+        # gunicorn BaseApplication.load is typed to return an ASGI/WSGI callable
+        # in the stubs, but in practice gunicorn accepts a dotted import string
+        # too via gunicorn.util.import_app. We follow the template's contract.
+        return import_app(self.app)  # type: ignore[return-value]

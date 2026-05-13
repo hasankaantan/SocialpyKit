@@ -1,5 +1,4 @@
 from collections.abc import AsyncGenerator
-from typing import Any
 
 import pytest
 from fastapi import FastAPI
@@ -18,17 +17,7 @@ from app.web.application import get_app
 
 
 @pytest.fixture(scope="session")
-def anyio_backend() -> str:
-    """
-    Backend for anyio pytest plugin.
-
-    :return: backend name.
-    """
-    return "asyncio"
-
-
-@pytest.fixture(scope="session")
-async def _engine(anyio_backend: Any) -> AsyncGenerator[AsyncEngine, None]:
+async def _engine() -> AsyncGenerator[AsyncEngine]:  # pyright: ignore[reportUnusedFunction]
     """
     Create engine and databases.
 
@@ -55,7 +44,7 @@ async def _engine(anyio_backend: Any) -> AsyncGenerator[AsyncEngine, None]:
 @pytest.fixture
 async def dbsession(
     _engine: AsyncEngine,
-) -> AsyncGenerator[AsyncSession, None]:
+) -> AsyncGenerator[AsyncSession]:
     """
     Get session to database.
 
@@ -98,8 +87,8 @@ def fastapi_app(
 
 @pytest.fixture
 async def client(
-    fastapi_app: FastAPI, anyio_backend: Any
-) -> AsyncGenerator[AsyncClient, None]:
+    fastapi_app: FastAPI,
+) -> AsyncGenerator[AsyncClient]:
     """
     Fixture that creates client for requesting server.
 
