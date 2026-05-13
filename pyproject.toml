@@ -20,6 +20,7 @@ dependencies = [
   "httptools >=0.7.1,<1",
   "sentry-sdk >=2.46.0,<3",
   "loguru>=0.7.3",
+  "whenever>=0.10.0",
 ]
 
 [dependency-groups]
