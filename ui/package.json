@@ -15,8 +15,10 @@
     "gen-api": "openapi-typescript ./openapi.json -o src/api/schema.ts"
   },
   "dependencies": {
+    "@tailwindcss/vite": "^4.3.0",
     "axios": "^1.16.0",
     "pinia": "^3.0.4",
+    "tailwindcss": "^4.3.0",
     "vue": "^3.5.34"
   },
   "devDependencies": {
