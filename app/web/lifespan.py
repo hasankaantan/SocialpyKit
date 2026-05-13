@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from app.settings import settings
 
 
-def _setup_db(app: FastAPI) -> None:  # pragma: no cover
+def _setup_db(app: FastAPI) -> None:  # pragma: no cover — production startup only
     """
     Creates connection to the database.
 
@@ -29,7 +29,7 @@ def _setup_db(app: FastAPI) -> None:  # pragma: no cover
 @asynccontextmanager
 async def lifespan_setup(
     app: FastAPI,
-) -> AsyncGenerator[None]:  # pragma: no cover
+) -> AsyncGenerator[None]:  # pragma: no cover — fastapi lifecycle, prod boot only
     """
     Actions to run on application startup.
 

@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.requests import Request
 
 
-async def get_db_session(  # pragma: no cover
+async def get_db_session(  # pragma: no cover — tests override via overrides
     request: Request,
 ) -> AsyncGenerator[AsyncSession]:
     """Yield a SQLAlchemy session per request and commit/close on teardown.

@@ -17,7 +17,7 @@ class InterceptHandler(logging.Handler):
     https://loguru.readthedocs.io/en/stable/overview.html#entirely-compatible-with-standard-logging
     """
 
-    def emit(self, record: logging.LogRecord) -> None:  # pragma: no cover
+    def emit(self, record: logging.LogRecord) -> None:
         """
         Propagates logs to loguru.
 
@@ -43,7 +43,7 @@ class InterceptHandler(logging.Handler):
         )
 
 
-def configure_logging() -> None:  # pragma: no cover
+def configure_logging() -> None:
     """Configures logging."""
     intercept_handler = InterceptHandler()
 
