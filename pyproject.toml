@@ -26,6 +26,7 @@ dependencies = [
   "pyjwt>=2.12.1",
   "bcrypt>=5.0.0",
   "email-validator>=2.3.0",
+  "python-multipart>=0.0.28",
 ]
 
 [dependency-groups]
