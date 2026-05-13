@@ -1,6 +1,6 @@
-import pluginVue from "eslint-plugin-vue"
-import { defineConfigWithVueTs, vueTsConfigs } from "@vue/eslint-config-typescript"
 import skipFormatting from "@vue/eslint-config-prettier/skip-formatting"
+import { defineConfigWithVueTs, vueTsConfigs } from "@vue/eslint-config-typescript"
+import pluginVue from "eslint-plugin-vue"
 
 export default defineConfigWithVueTs(
   {
@@ -23,4 +23,32 @@ export default defineConfigWithVueTs(
   pluginVue.configs["flat/recommended"],
   vueTsConfigs.recommendedTypeChecked,
   skipFormatting,
+
+  {
+    name: "app/unused-vars-underscore-pattern",
+    rules: {
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          caughtErrorsIgnorePattern: "^_",
+          destructuredArrayIgnorePattern: "^_",
+          ignoreRestSiblings: true,
+        },
+      ],
+    },
+  },
+
+  {
+    // shadcn-vue ships single-word component names (Avatar, Button, etc.)
+    // and exposes optional props without defaults; both are documented
+    // conventions of the library and should not be linted against here.
+    name: "app/shadcn-overrides",
+    files: ["src/components/ui/**/*.vue"],
+    rules: {
+      "vue/multi-word-component-names": "off",
+      "vue/require-default-prop": "off",
+    },
+  },
 )
