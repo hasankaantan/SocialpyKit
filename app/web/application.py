@@ -28,9 +28,7 @@ def get_app() -> FastAPI:
             integrations=[
                 FastApiIntegration(transaction_style="endpoint"),
                 LoggingIntegration(
-                    level=logging.getLevelNamesMapping()[
-                        settings.log_level.value
-                    ],
+                    level=logging.getLevelNamesMapping()[settings.log_level.value],
                     event_level=logging.ERROR,
                 ),
                 SqlalchemyIntegration(),
