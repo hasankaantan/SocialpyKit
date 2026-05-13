@@ -3,7 +3,7 @@
 Limits are documented on the individual route decorators in
 ``app.api.v1.routers.auth``. This module owns the shared :class:`Limiter`
 instance and the integration glue (middleware + exception handler) that
-:func:`app.web.application.get_app` calls during startup.
+:func:`app.core.server.get_app` calls during startup.
 
 Disabled under pytest via ``settings.rate_limit_enabled``. Set
 ``SOCIALPYKIT_RATE_LIMIT_ENABLED=false`` to disable in any other

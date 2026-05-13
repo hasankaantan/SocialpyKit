@@ -15,9 +15,9 @@ from app.core.exceptions import (
     NotFoundError,
     ValidationError,
 )
+from app.core.server.lifespan import lifespan_setup
+from app.core.server.rate_limit import register_rate_limiter
 from app.settings import settings
-from app.web.lifespan import lifespan_setup
-from app.web.rate_limit import register_rate_limiter
 
 
 async def handle_not_found(_: Request, exc: NotFoundError) -> JSONResponse:

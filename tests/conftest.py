@@ -25,10 +25,10 @@ from sqlalchemy.ext.asyncio import (
 )
 
 from app.api.v1.dependencies.db import get_db_session
+from app.core.server.factory import get_app
 from app.db.models.dummy_model import DummyModel
 from app.db.utils import create_database, drop_database
 from app.settings import settings
-from app.web.application import get_app
 
 
 @pytest.fixture(scope="session")

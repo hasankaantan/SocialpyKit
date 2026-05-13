@@ -1,17 +1,17 @@
-"""Unit tests for sentry SDK wiring in :func:`app.web.application.get_app`."""
+"""Unit tests for sentry SDK wiring in :func:`app.core.server.get_app`."""
 
 from unittest.mock import patch
 
 import pytest
 
+from app.core.server.factory import get_app
 from app.settings import settings
-from app.web.application import get_app
 
 
 def test_sentry_init_skipped_when_dsn_is_blank() -> None:
     """Pytest config sets SOCIALPYKIT_SENTRY_DSN to empty string so the
     sentry branch must be a no-op in the default test environment."""
-    with patch("app.web.application.sentry_sdk.init") as mock_init:
+    with patch("app.core.server.factory.sentry_sdk.init") as mock_init:
         get_app()
 
     mock_init.assert_not_called()
@@ -26,7 +26,7 @@ def test_sentry_init_runs_when_dsn_is_configured(
         "https://example@example.ingest.sentry.io/1",
     )
 
-    with patch("app.web.application.sentry_sdk.init") as mock_init:
+    with patch("app.core.server.factory.sentry_sdk.init") as mock_init:
         get_app()
 
     mock_init.assert_called_once()
@@ -45,7 +45,7 @@ def test_sentry_init_passes_configured_dsn_and_sample_rate(
     monkeypatch.setattr(settings, "sentry_sample_rate", 0.5)
     monkeypatch.setattr(settings, "environment", "staging")
 
-    with patch("app.web.application.sentry_sdk.init") as mock_init:
+    with patch("app.core.server.factory.sentry_sdk.init") as mock_init:
         get_app()
 
     kwargs = mock_init.call_args.kwargs
@@ -65,7 +65,7 @@ def test_sentry_init_wires_all_three_integrations(
         "https://example@example.ingest.sentry.io/1",
     )
 
-    with patch("app.web.application.sentry_sdk.init") as mock_init:
+    with patch("app.core.server.factory.sentry_sdk.init") as mock_init:
         get_app()
 
     integrations = mock_init.call_args.kwargs["integrations"]

@@ -5,7 +5,7 @@ default: test
 # --- backend ---------------------------------------------------------------
 
 dev:
-    uv run uvicorn app.web.application:get_app --reload --factory
+    uv run uvicorn app.main:app --reload
 
 lint:
     uv run ruff check app tests
@@ -62,7 +62,7 @@ ui-test: ui-lint ui-types
 # Regenerate ui/openapi.json from the live FastAPI app, then refresh
 # ui/src/api/schema.ts. Run after any backend route or schema change.
 ui-gen-api:
-    uv run python -c "import json; from app.web.application import get_app; print(json.dumps(get_app().openapi(), indent=2))" > ui/openapi.json
+    uv run python -c "import json; from app.core.server import get_app; print(json.dumps(get_app().openapi(), indent=2))" > ui/openapi.json
     cd ui && bun run gen-api
 
 # --- monorepo --------------------------------------------------------------

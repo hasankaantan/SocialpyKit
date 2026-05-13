@@ -13,7 +13,7 @@ from app.core.exceptions import (
     NotFoundError,
     ValidationError,
 )
-from app.web.application import (
+from app.core.server.factory import (
     handle_already_exists,
     handle_authentication,
     handle_authorization,
