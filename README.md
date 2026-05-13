@@ -64,7 +64,7 @@ If `nunomaduro/laravel-starter-kit` set the bar for "what a senior-grade Laravel
 | Task runner | `just` |
 | Pre-commit | `pre-commit` |
 | CI | GitHub Actions |
-| Frontend (separate repo) | Vue 3 + Vite + Pinia + Axios + `openapi-typescript` |
+| Frontend (`ui/` in this monorepo) | Vue 3 + Vite + Pinia + Axios + `openapi-typescript`, managed with `bun` |
 
 ---
 
@@ -94,8 +94,17 @@ tests/
   unit/               # services and pure logic
   integration/        # DB + API tests via httpx.AsyncClient
   conftest.py
-justfile              # all commands
-pyproject.toml        # all tool config (ruff, mypy, pyright, pytest, coverage)
+ui/                   # Vue 3 frontend (monorepo, bun-managed)
+  src/
+    api/              # openapi-typescript generated types + axios wrappers
+    components/       # .vue components
+    main.ts
+  package.json
+  vite.config.ts
+  eslint.config.ts
+  openapi.json        # exported from backend, regenerate via `just ui-gen-api`
+justfile              # all commands (backend, frontend, monorepo)
+pyproject.toml        # all backend tool config (ruff, mypy, pyright, pytest, coverage)
 .pre-commit-config.yaml
 CLAUDE.md             # AI assistant guardrails (read this before contributing)
 AGENTS.md
@@ -164,23 +173,21 @@ Until then, prefer Option A.
 git clone git@github.com:hasankaantan/socialpykit.git
 cd socialpykit
 
-# 1. install dependencies into a .venv
-uv sync
+# --- backend ---
+uv sync                        # install python deps into .venv
+uv run pre-commit install      # install git hooks
+docker compose up -d db        # start the dev database
+just migrate                   # run alembic upgrade head
+just dev                       # boot uvicorn with reload
 
-# 2. install pre-commit hooks
-uv run pre-commit install
-
-# 3. start the dev database
-docker compose up -d db
-
-# 4. run migrations
-just migrate
-
-# 5. boot the dev server
-just dev
+# --- frontend (in a second terminal) ---
+just ui-install                # install bun deps inside ui/
+just ui-dev                    # boot vite with hmr
 ```
 
-The app listens on `http://localhost:8000`. Swagger UI lives at `/api/docs`, ReDoc at `/api/redoc`.
+- Backend API: `http://localhost:8000`. Swagger UI at `/api/docs`, ReDoc at `/api/redoc`.
+- Frontend dev server: `http://localhost:5173` (Vite default).
+- Frontend reads the API via `VITE_API_BASE_URL` (defaults to `http://localhost:8000`).
 
 ---
 
@@ -189,18 +196,32 @@ The app listens on `http://localhost:8000`. Swagger UI lives at `/api/docs`, ReD
 Every command lives in the [`justfile`](./justfile):
 
 ```bash
+# --- backend ---
 just dev            # uvicorn with reload
 just lint           # ruff check + ruff format --check
 just format         # ruff format + ruff check --fix
 just types          # mypy --strict + pyright --strict
 just test-unit      # pytest tests/unit
 just test-int       # pytest tests/integration
-just test           # lint + types + full pytest run  ← run before every commit
+just test           # lint + types + full pytest run
 just migrate        # alembic upgrade head
 just makemig msg="…" # alembic revision --autogenerate -m "…"
+
+# --- frontend (ui/) ---
+just ui-install     # bun install inside ui/
+just ui-dev         # vite dev server with hmr
+just ui-build       # vue-tsc + vite build
+just ui-lint        # eslint + prettier --check
+just ui-format      # prettier --write + eslint --fix
+just ui-types       # vue-tsc --noEmit
+just ui-test        # ui-lint + ui-types + ui-build (full frontend pipeline)
+just ui-gen-api     # regenerate ui/openapi.json + ui/src/api/schema.ts
+
+# --- monorepo ---
+just test-all       # just test && just ui-test  ← run before every commit
 ```
 
-**Rule of thumb:** if `just test` is red, the branch is not mergeable.
+**Rule of thumb:** if `just test-all` is red, the branch is not mergeable.
 
 ---
 
@@ -236,7 +257,7 @@ SocialpyKit is built in deliberate phases. Each step within a phase is its own c
 | **Phase 2** — Architecture refactor | 🚧 In progress | `essentials.py`, exception hierarchy, services / repositories, `whenever` migration |
 | **Phase 3** — Test & coverage | ⏳ | Shared fixtures, unit + integration suites, 100% coverage gate |
 | **Phase 4** — AI / dev experience | ⏳ | `CLAUDE.md` ✅, `AGENTS.md`, `.mcp.json`, `.cursor/` rules |
-| **Phase 5** — Vue 3 frontend (separate repo) | ⏳ | `socialpykit-ui`: Vite + Pinia + Axios + `openapi-typescript` |
+| **Phase 5** — Vue 3 frontend (monorepo `ui/`) | ✅ Done | Vite + Pinia + Axios + `openapi-typescript`, bun-managed, ESLint strict |
 | **Phase 6** — Template parameterization | ⏳ | `copier.yaml`, mark as GitHub template repo |
 
 For the detailed phase-by-phase commit plan, see [`CLAUDE.md`](./CLAUDE.md).

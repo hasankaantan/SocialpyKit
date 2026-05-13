@@ -21,7 +21,7 @@ a services/repositories architecture.
 
 **Stack:** Python 3.13+ · FastAPI · SQLAlchemy 2.0 (async) · Alembic · Pydantic v2 · PostgreSQL
 **Tooling:** uv · ruff · mypy (strict) · pyright (strict) · pytest · pytest-cov · pre-commit · just
-**Frontend (separate repo):** Vue 3 · Vite · Pinia · Axios · openapi-typescript
+**Frontend (monorepo, `ui/` directory):** Vue 3 · Vite · Pinia · Axios · openapi-typescript · bun · ESLint · Prettier · vue-tsc
 
 ---
 
@@ -76,13 +76,38 @@ tests/
   unit/               # Pure logic tests (services, utils)
   integration/        # DB + API tests (pytest-asyncio + httpx AsyncClient)
   conftest.py         # Shared fixtures
-justfile              # All commands (test, lint, format, migrate, ...)
-pyproject.toml        # All tool config lives here (ruff, mypy, pytest, coverage)
+ui/                   # Vue 3 frontend (monorepo, see ### Frontend below)
+  src/
+    api/              # Generated openapi-typescript types + axios client
+    components/       # Vue SFCs
+    main.ts
+  package.json        # bun-managed deps
+  vite.config.ts
+  eslint.config.ts    # flat config, strict type-checked
+  .prettierrc.json
+  openapi.json        # exported from backend, source of truth for ui types
+justfile              # All commands (test, lint, format, migrate, ui-*, ...)
+pyproject.toml        # All backend tool config (ruff, mypy, pytest, coverage)
 .pre-commit-config.yaml
 CLAUDE.md
 AGENTS.md
 .mcp.json
 ```
+
+### Frontend (`ui/` directory)
+
+The frontend is **not a separate repo** — it lives in `ui/` inside this monorepo. Rationale: keeping backend and frontend in lockstep removes the OpenAPI sync problem (single PR can change both layers and regenerate `ui/src/api/schema.ts` with `just ui-gen-api`).
+
+Conventions:
+
+- **Package manager:** `bun` (lockfile is `bun.lock`).
+- **Type safety:** every API call goes through the generated `paths` interface in `ui/src/api/schema.ts`. Domain endpoints live in `ui/src/api/endpoints/<domain>.ts` as typed wrappers; no untyped `http.get(url)` in the rest of the codebase.
+- **Lint / format:** `eslint.config.ts` uses `eslint-plugin-vue` flat/recommended + `vueTsConfigs.recommendedTypeChecked` (strict type-aware rules) + prettier skip-formatting layer. Prettier owns formatting; ESLint does not enforce it.
+- **Type check:** `vue-tsc --noEmit` must pass with zero errors.
+- **No build-time fetch of OpenAPI.** `ui/openapi.json` is committed; regenerate explicitly with `just ui-gen-api` after backend route or schema changes.
+- **No `any`.** Same rule as the backend's mypy strict — applies to TypeScript too.
+
+Just recipes wrap every command: `just ui-install`, `just ui-dev`, `just ui-build`, `just ui-lint`, `just ui-format`, `just ui-types`, `just ui-test`, `just ui-gen-api`. `just test-all` runs both backend and frontend pipelines.
 
 ### Layer Rules
 
@@ -319,11 +344,11 @@ Steps and commits:
 
 ---
 
-### Faz 5 — Vue 3 Frontend (separate repo: socialpykit-ui)
+### Faz 5 — Vue 3 Frontend (monorepo, `ui/` directory)
 
 Steps and commits:
 
-1. Scaffold Vue 3 + Vite + Pinia + Axios
+1. Scaffold Vue 3 + Vite + Pinia + Axios into `ui/`
    `chore: initialize vue3 project with vite and pinia`
 
 2. Generate type-safe API client from FastAPI OpenAPI schema
@@ -332,8 +357,15 @@ Steps and commits:
 3. Configure eslint strict + prettier + vue-tsc strict
    `chore: add strict eslint and typescript config`
 
-4. Verify type-check passes
+4. Add `.github/workflows/frontend.yml` so lint, types, and build run
+   on every push and PR touching `ui/`
    `chore: verify frontend type check pipeline`
+
+5. Add `just ui-*` recipes and `just test-all` for the monorepo
+   `chore: add frontend recipes to justfile`
+
+6. Document the monorepo layout and ui/ conventions
+   `docs: convert layout to monorepo and document ui directory`
 
 ---
 
