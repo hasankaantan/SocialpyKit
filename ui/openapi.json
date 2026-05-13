@@ -30,7 +30,7 @@
           "auth"
         ],
         "summary": "Register",
-        "description": "Create a new user account.",
+        "description": "Create a new user account.\n\nPer-IP rate limit: 3 attempts / minute. Bots that try to register\nen masse hit a 429 before reaching the bcrypt hash step.",
         "operationId": "register_api_auth_register_post",
         "requestBody": {
           "content": {
@@ -72,7 +72,7 @@
           "auth"
         ],
         "summary": "Login",
-        "description": "Exchange email and password for a bearer access token.\n\nAccepts the standard OAuth2 password-grant form body so the Swagger\nUI's 'Authorize' button works out of the box. ``form.username`` is\nthe email address.",
+        "description": "Exchange email and password for a bearer access token.\n\nAccepts the standard OAuth2 password-grant form body so the Swagger\nUI's 'Authorize' button works out of the box. ``form.username`` is\nthe email address.\n\nPer-IP rate limit: 5 attempts / minute. Sufficient for a typo\ncorrection loop, hostile to credential-stuffing.",
         "operationId": "login_api_auth_login_post",
         "requestBody": {
           "content": {
@@ -133,6 +133,199 @@
             "OAuth2PasswordBearer": []
           }
         ]
+      }
+    },
+    "/api/users/": {
+      "get": {
+        "tags": [
+          "users"
+        ],
+        "summary": "List Users",
+        "description": "Return every user. Admin-only; non-admin callers get HTTP 403.",
+        "operationId": "list_users_api_users__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/UserResponse"
+                  },
+                  "type": "array",
+                  "title": "Response List Users Api Users  Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/users/me": {
+      "delete": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Delete Me",
+        "description": "Delete the caller's own account.",
+        "operationId": "delete_me_api_users_me_delete",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Update Me",
+        "description": "Update the caller's own profile (email and/or password).",
+        "operationId": "update_me_api_users_me_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/users/{user_id}": {
+      "patch": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Update User As Admin",
+        "description": "Admin-only update of any user.",
+        "operationId": "update_user_as_admin_api_users__user_id__patch",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminUserUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Delete User As Admin",
+        "description": "Admin-only delete of any user.",
+        "operationId": "delete_user_as_admin_api_users__user_id__delete",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/dummy/": {
@@ -236,6 +429,47 @@
   },
   "components": {
     "schemas": {
+      "AdminUserUpdateRequest": {
+        "properties": {
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          },
+          "role": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UserRole"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "AdminUserUpdateRequest",
+        "description": "Payload for ``PATCH /api/users/{user_id}``.\n\nAdmin-only fields: email, is_active, and role. Password rotation\ngoes through the self-update endpoint with current_password so an\nadmin cannot silently overwrite another user's credential."
+      },
       "Body_login_api_auth_login_post": {
         "properties": {
           "grant_type": {
@@ -421,6 +655,10 @@
             "type": "boolean",
             "title": "Is Active"
           },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -433,10 +671,64 @@
           "id",
           "email",
           "is_active",
+          "role",
           "created_at"
         ],
         "title": "UserResponse",
         "description": "Public projection of a ``User`` row.\n\nNever includes ``hashed_password`` \u2014 that field exists only inside\nthe persistence layer and the auth service."
+      },
+      "UserRole": {
+        "type": "string",
+        "enum": [
+          "user",
+          "admin"
+        ],
+        "title": "UserRole",
+        "description": "Authorization role attached to every user row.\n\nStored as a short string in postgres so the enum can grow without a\nschema migration. The api layer compares against ``UserRole.ADMIN``\nto gate admin-only routes."
+      },
+      "UserUpdateRequest": {
+        "properties": {
+          "email": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "email"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "new_password": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 72,
+                "minLength": 8
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "New Password"
+          },
+          "current_password": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Password"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "UserUpdateRequest",
+        "description": "Payload for ``PATCH /api/users/me``.\n\nAll fields are optional; supply only the ones to change. When\n``new_password`` is provided, ``current_password`` is required so a\nstolen token alone cannot rotate the password."
       },
       "ValidationError": {
         "properties": {

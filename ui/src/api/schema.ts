@@ -41,6 +41,9 @@ export interface paths {
         /**
          * Register
          * @description Create a new user account.
+         *
+         *     Per-IP rate limit: 3 attempts / minute. Bots that try to register
+         *     en masse hit a 429 before reaching the bcrypt hash step.
          */
         post: operations["register_api_auth_register_post"];
         delete?: never;
@@ -65,6 +68,9 @@ export interface paths {
          *     Accepts the standard OAuth2 password-grant form body so the Swagger
          *     UI's 'Authorize' button works out of the box. ``form.username`` is
          *     the email address.
+         *
+         *     Per-IP rate limit: 5 attempts / minute. Sufficient for a typo
+         *     correction loop, hostile to credential-stuffing.
          */
         post: operations["login_api_auth_login_post"];
         delete?: never;
@@ -91,6 +97,74 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/users/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Users
+         * @description Return every user. Admin-only; non-admin callers get HTTP 403.
+         */
+        get: operations["list_users_api_users__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete Me
+         * @description Delete the caller's own account.
+         */
+        delete: operations["delete_me_api_users_me_delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Update Me
+         * @description Update the caller's own profile (email and/or password).
+         */
+        patch: operations["update_me_api_users_me_patch"];
+        trace?: never;
+    };
+    "/api/users/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete User As Admin
+         * @description Admin-only delete of any user.
+         */
+        delete: operations["delete_user_as_admin_api_users__user_id__delete"];
+        options?: never;
+        head?: never;
+        /**
+         * Update User As Admin
+         * @description Admin-only update of any user.
+         */
+        patch: operations["update_user_as_admin_api_users__user_id__patch"];
         trace?: never;
     };
     "/api/dummy/": {
@@ -121,6 +195,21 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * AdminUserUpdateRequest
+         * @description Payload for ``PATCH /api/users/{user_id}``.
+         *
+         *     Admin-only fields: email, is_active, and role. Password rotation
+         *     goes through the self-update endpoint with current_password so an
+         *     admin cannot silently overwrite another user's credential.
+         */
+        AdminUserUpdateRequest: {
+            /** Email */
+            email?: string | null;
+            /** Is Active */
+            is_active?: boolean | null;
+            role?: components["schemas"]["UserRole"] | null;
+        };
         /** Body_login_api_auth_login_post */
         Body_login_api_auth_login_post: {
             /** Grant Type */
@@ -221,11 +310,39 @@ export interface components {
             email: string;
             /** Is Active */
             is_active: boolean;
+            /** Role */
+            role: string;
             /**
              * Created At
              * Format: date-time
              */
             created_at: string;
+        };
+        /**
+         * UserRole
+         * @description Authorization role attached to every user row.
+         *
+         *     Stored as a short string in postgres so the enum can grow without a
+         *     schema migration. The api layer compares against ``UserRole.ADMIN``
+         *     to gate admin-only routes.
+         * @enum {string}
+         */
+        UserRole: "user" | "admin";
+        /**
+         * UserUpdateRequest
+         * @description Payload for ``PATCH /api/users/me``.
+         *
+         *     All fields are optional; supply only the ones to change. When
+         *     ``new_password`` is provided, ``current_password`` is required so a
+         *     stolen token alone cannot rotate the password.
+         */
+        UserUpdateRequest: {
+            /** Email */
+            email?: string | null;
+            /** New Password */
+            new_password?: string | null;
+            /** Current Password */
+            current_password?: string | null;
         };
         /** ValidationError */
         ValidationError: {
@@ -351,6 +468,141 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["UserResponse"];
+                };
+            };
+        };
+    };
+    list_users_api_users__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserResponse"][];
+                };
+            };
+        };
+    };
+    delete_me_api_users_me_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    update_me_api_users_me_patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UserUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_user_as_admin_api_users__user_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_user_as_admin_api_users__user_id__patch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminUserUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
