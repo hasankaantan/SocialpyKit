@@ -1,0 +1,75 @@
+# Copier template configuration for SocialpyKit.
+# https://copier.readthedocs.io/en/stable/configuring/
+#
+# Status:
+#   - This file defines the variables a future copier render of the kit
+#     would prompt for.
+#   - The repo's source files are NOT yet fully parametrised with these
+#     variables; main is the working reference implementation.
+#   - For one-click forking, use GitHub's native "Use this template"
+#     button (it copies the source tree verbatim). After cloning, search
+#     and replace the literals listed under "manual_rename_targets"
+#     below.
+#   - A fully copier-rendered template lives on a future `template`
+#     branch (or in a `template/` subdirectory) once parametrisation is
+#     complete; until then, prefer the GitHub template flow.
+
+_min_copier_version: "9.0.0"
+
+# Variables the renderer would prompt for.
+project_name:
+  type: str
+  help: "Display name of the project (e.g. SocialpyKit, AcmeAPI)."
+  default: MyKit
+
+project_slug:
+  type: str
+  help: "Lowercase slug for env-var prefix, database name, docker image."
+  default: "{{ project_name | lower | replace(' ', '') }}"
+
+package_name:
+  type: str
+  help: "Python package directory under the repo root."
+  default: app
+
+description:
+  type: str
+  help: "One-line project description for pyproject and README."
+  default: "FastAPI starter kit"
+
+author_name:
+  type: str
+  help: "Maintainer name."
+
+author_email:
+  type: str
+  help: "Maintainer email."
+
+github_org:
+  type: str
+  help: "GitHub organisation or user that hosts the repo."
+
+python_version:
+  type: str
+  help: "Minimum python version (e.g. 3.13)."
+  default: "3.13"
+
+include_sentry:
+  type: bool
+  help: "Wire up Sentry integration?"
+  default: true
+
+include_jwt_auth:
+  type: bool
+  help: "Include JWT auth scaffolding?"
+  default: true
+
+# Literals contributors should search-and-replace after cloning via
+# GitHub's "Use this template" until the copier render lands.
+_manual_rename_targets:
+  - "socialpykit"           # env-var prefix, db name, docker image, project name
+  - "SOCIALPYKIT_"          # uppercase env-var prefix
+  - "Socialbug Apps LLC"    # author
+  - "Hasan Kaan Tan"        # maintainer
+  - "socialbugapps"         # github org
+  - "socialpykit.web"       # only if you also rename the package directory
