@@ -39,7 +39,7 @@ makemig msg:
 # then run `just promote-admin you@example.com` so it can manage the
 # rest of the system through the dashboard.
 promote-admin email:
-    uv run python scripts/promote_admin.py {{email}}
+    PYTHONPATH=. uv run python scripts/promote_admin.py {{email}}
 
 # --- frontend (ui/) --------------------------------------------------------
 

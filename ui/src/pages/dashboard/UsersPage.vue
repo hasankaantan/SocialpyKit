@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import axios from "axios"
-import { MoreHorizontalIcon, Trash2Icon } from "lucide-vue-next"
+import { MoreHorizontalIcon, PencilIcon, Trash2Icon } from "lucide-vue-next"
 import { computed, onMounted, ref } from "vue"
 import { toast } from "vue-sonner"
 
@@ -160,14 +160,17 @@ onMounted(load)
                       <span class="sr-only">Open actions</span>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem @click="editing = user"> Edit </DropdownMenuItem>
+                  <DropdownMenuContent align="end" class="w-36">
+                    <DropdownMenuItem class="gap-2" @click="editing = user">
+                      <PencilIcon class="h-4 w-4" />
+                      Edit
+                    </DropdownMenuItem>
                     <DropdownMenuItem
                       :disabled="user.id === store.user?.id"
-                      class="text-destructive focus:text-destructive"
+                      class="gap-2 text-destructive focus:text-destructive"
                       @click="deleteTarget = user"
                     >
-                      <Trash2Icon class="mr-2 h-4 w-4" />
+                      <Trash2Icon class="h-4 w-4" />
                       Delete
                     </DropdownMenuItem>
                   </DropdownMenuContent>

@@ -136,8 +136,8 @@ function explain(err: unknown): string {
       </p>
     </header>
 
-    <Card>
-      <form @submit="onSubmitEmail">
+    <form @submit="onSubmitEmail">
+      <Card>
         <CardHeader>
           <CardTitle>Email</CardTitle>
           <CardDescription>The address you use to sign in.</CardDescription>
@@ -145,7 +145,7 @@ function explain(err: unknown): string {
         <CardContent>
           <FormField v-slot="{ componentField }" name="email">
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel class="sr-only">Email</FormLabel>
               <FormControl>
                 <Input type="email" autocomplete="email" v-bind="componentField" />
               </FormControl>
@@ -158,11 +158,11 @@ function explain(err: unknown): string {
             {{ emailForm.isSubmitting.value ? "Saving…" : "Save email" }}
           </Button>
         </CardFooter>
-      </form>
-    </Card>
+      </Card>
+    </form>
 
-    <Card>
-      <form @submit="onSubmitPassword">
+    <form @submit="onSubmitPassword">
+      <Card>
         <CardHeader>
           <CardTitle>Password</CardTitle>
           <CardDescription>
@@ -202,8 +202,8 @@ function explain(err: unknown): string {
             {{ passwordForm.isSubmitting.value ? "Saving…" : "Save password" }}
           </Button>
         </CardFooter>
-      </form>
-    </Card>
+      </Card>
+    </form>
 
     <Card class="border-destructive/40">
       <CardHeader>
