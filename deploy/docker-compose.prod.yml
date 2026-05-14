@@ -1,0 +1,82 @@
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      ACME_EMAIL: ${ACME_EMAIL:?ACME_EMAIL is required}
+      API_DOMAIN: ${API_DOMAIN:?API_DOMAIN is required}
+      APP_DOMAIN: ${APP_DOMAIN:?APP_DOMAIN is required}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ../ui/dist:/srv/ui:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    networks:
+      - edge
+    depends_on:
+      - api
+
+  api: &main_app
+    build:
+      context: ..
+      target: prod
+      dockerfile: ./Dockerfile
+    image: socialpykit:${SOCIALPYKIT_VERSION:-latest}
+    restart: unless-stopped
+    env_file:
+      - path: ../.env.prod
+        required: true
+    environment:
+      SOCIALPYKIT_HOST: 0.0.0.0
+      SOCIALPYKIT_PORT: 8000
+      SOCIALPYKIT_ENVIRONMENT: prod
+      SOCIALPYKIT_RELOAD: "False"
+      SOCIALPYKIT_DB_HOST: db
+    depends_on:
+      db:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+    networks:
+      - edge
+      - internal
+
+  migrator:
+    <<: *main_app
+    restart: "no"
+    command: alembic upgrade head
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - internal
+
+  db:
+    image: postgres:18.3-trixie
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${SOCIALPYKIT_DB_USER:?required}
+      POSTGRES_PASSWORD: ${SOCIALPYKIT_DB_PASS:?required}
+      POSTGRES_DB: ${SOCIALPYKIT_DB_BASE:?required}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: pg_isready -U ${SOCIALPYKIT_DB_USER}
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      - internal
+
+networks:
+  edge:
+  internal:
+
+volumes:
+  caddy-data:
+  caddy-config:
+  db-data:
