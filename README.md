@@ -321,6 +321,40 @@ Every Settings field is reflected as `SOCIALPYKIT_<UPPERCASE_FIELD>`. See [`app/
 
 ---
 
+## Production Deployment
+
+The default dev setup serves **plaintext HTTP** between `ui` and `api` — fine for `localhost`, never for production. In production you must terminate TLS at a reverse proxy and keep the FastAPI app on an internal network. JWT bearer tokens travelling over plaintext can be sniffed; TLS 1.3 is the baseline.
+
+A ready-to-use [Caddy](https://caddyserver.com/) + Docker Compose stack lives under [`deploy/`](./deploy/README.md). Caddy handles Let's Encrypt issuance and renewal automatically, adds HSTS + security headers, and proxies the API while serving the built frontend statically.
+
+### TLS strategy summary
+
+| Pattern | When to pick it |
+|--|--|
+| **Reverse proxy on the same host** (Caddy / Nginx / Traefik) | Single-server deployments. This is what `deploy/` ships. |
+| **Cloud load balancer / CDN** (Cloudflare, AWS ALB, GCP LB) | Multi-instance setups; certificate lives at the LB, backend stays plaintext on a private network. |
+| **Uvicorn `--ssl-keyfile/--ssl-certfile`** | Niche; only when no proxy is allowed. Rare in 2026. |
+
+### Cross-origin wiring
+
+Frontend and API typically live on separate subdomains (`app.example.com` / `api.example.com`). Two settings tie them together:
+
+```bash
+# frontend — compiled into the bundle at `bun run build` time
+VITE_API_BASE_URL=https://api.example.com
+
+# backend — JSON list, parsed by pydantic-settings
+SOCIALPYKIT_CORS_ORIGINS=["https://app.example.com"]
+```
+
+See [`deploy/README.md`](./deploy/README.md) for the full step-by-step (DNS, `.env.prod`, frontend build, `docker compose up`, admin bootstrap, hardening checklist).
+
+### Application-layer encryption?
+
+**No.** TLS 1.3 already uses AES-256-GCM (or ChaCha20-Poly1305). Adding a second AES layer in the API client doesn't add a real trust boundary — the key would have to ship with the client. Stick to TLS + HSTS + short-lived JWTs. The only legitimate "extra encryption" pattern for a 2026 SaaS API is end-to-end encryption where the server is explicitly untrusted (password managers, Signal-style messaging) — outside this template's scope.
+
+---
+
 ## Testing
 
 Tests run against a **real** PostgreSQL instance. We do not mock the database in integration tests — production parity matters more than test startup time.
