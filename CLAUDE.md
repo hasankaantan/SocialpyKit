@@ -21,7 +21,7 @@ a services/repositories architecture.
 
 **Stack:** Python 3.13+ · FastAPI · SQLAlchemy 2.0 (async) · Alembic · Pydantic v2 · PostgreSQL
 **Tooling:** uv · ruff · mypy (strict) · pyright (strict) · pytest · pytest-cov · pre-commit · just
-**Frontend (monorepo, `ui/` directory):** Vue 3 · Vite · Pinia · Axios · openapi-typescript · bun · ESLint · Prettier · vue-tsc
+**Frontend (monorepo, `ui/` directory):** Nuxt 3 (hybrid render) · Pinia · `$fetch` · `useCookie` · openapi-typescript · bun · shadcn-vue · vee-validate + zod · @nuxtjs/sitemap + @nuxtjs/robots · ESLint · Prettier · `nuxt typecheck`
 
 ---
 
@@ -76,14 +76,22 @@ tests/
   unit/               # Pure logic tests (services, utils)
   integration/        # DB + API tests (pytest-asyncio + httpx AsyncClient)
   conftest.py         # Shared fixtures
-ui/                   # Vue 3 frontend (monorepo, see ### Frontend below)
-  src/
-    api/              # Generated openapi-typescript types + axios client
-    components/       # Vue SFCs
-    main.ts
+ui/                   # Nuxt 3 frontend (monorepo, see ### Frontend below)
+  app.vue             # root component
+  nuxt.config.ts      # render rules, modules, runtime config
+  pages/              # file-based routing (index, login, register, pricing, dashboard/**)
+  layouts/            # default (marketing shell) + dashboard (sidebar)
+  middleware/         # auth.global, auth, admin
+  plugins/api.ts      # $fetch with auth interceptor
+  composables/useApi.ts
+  stores/auth.ts      # Pinia, useCookie-backed token
+  components/         # Vue SFCs + shadcn-vue under components/ui/
+  api/                # openapi-typescript schema + typed endpoint wrappers
+  lib/                # utils.ts (cn), api-error.ts (explainApiError)
+  assets/css/main.css # tailwind v4
+  error.vue           # custom 404 / 500
   package.json        # bun-managed deps
-  vite.config.ts
-  eslint.config.ts    # flat config, strict type-checked
+  eslint.config.ts    # flat config, strict type-checked, nuxt-aware overrides
   .prettierrc.json
   openapi.json        # exported from backend, source of truth for ui types
 justfile              # All commands (test, lint, format, migrate, ui-*, ...)
@@ -96,18 +104,31 @@ AGENTS.md
 
 ### Frontend (`ui/` directory)
 
-The frontend is **not a separate repo** — it lives in `ui/` inside this monorepo. Rationale: keeping backend and frontend in lockstep removes the OpenAPI sync problem (single PR can change both layers and regenerate `ui/src/api/schema.ts` with `just ui-gen-api`).
+The frontend is **not a separate repo** — it lives in `ui/` inside this monorepo. Rationale: keeping backend and frontend in lockstep removes the OpenAPI sync problem (single PR can change both layers and regenerate `ui/api/schema.ts` with `just ui-gen-api`).
+
+Stack is **Nuxt 3 in hybrid render mode** (Faz 8 onward — see Faz 8 section for the migration history):
+
+- **Marketing routes** (`/`, `/pricing`) — `prerender: true`, static HTML in `.output/public/`.
+- **Auth routes** (`/login`, `/register`) — `ssr: true`, server-rendered per request, `definePageMeta({ publicOnly: true })` so signed-in users bounce.
+- **Dashboard routes** (`/dashboard/**`) — `ssr: false`, SPA-only, opt into `middleware: ['auth']` (or `['auth', 'admin']` for the users page).
 
 Conventions:
 
 - **Package manager:** `bun` (lockfile is `bun.lock`).
-- **Type safety:** every API call goes through the generated `paths` interface in `ui/src/api/schema.ts`. Domain endpoints live in `ui/src/api/endpoints/<domain>.ts` as typed wrappers; no untyped `http.get(url)` in the rest of the codebase.
-- **Lint / format:** `eslint.config.ts` uses `eslint-plugin-vue` flat/recommended + `vueTsConfigs.recommendedTypeChecked` (strict type-aware rules) + prettier skip-formatting layer. Prettier owns formatting; ESLint does not enforce it.
-- **Type check:** `vue-tsc --noEmit` must pass with zero errors.
+- **Type safety:** every API call goes through the generated `paths` interface in `ui/api/schema.ts`. Domain endpoints in `ui/api/endpoints/<domain>.ts` call `useApi()` (from `composables/useApi.ts`) which returns the typed `$fetch` instance provided by `plugins/api.ts`. The plugin attaches the bearer token via `onRequest` — call sites stay token-free.
+- **Persistence is cookie-based.** `stores/auth.ts` reads/writes the JWT via `useCookie<string | null>("socialpykit_token")`. `localStorage` is forbidden in any code that may run during SSR (server has no `window`); use `useCookie` or `useState`.
+- **`<NuxtLink>` over `<RouterLink>`** for in-app navigation; `<a>` for external links only.
+- **`navigateTo(...)` over `useRouter().push(...)`** — `navigateTo` works in middleware, plugins, and component setup.
+- **`definePageMeta(...)`** declares `layout`, `middleware`, and `ssr` per page. Auth pages use `layout: false` (full-screen template). Dashboard pages use `layout: "dashboard"` + `middleware: "auth"` + `ssr: false`.
+- **Component auto-import is disabled** (`components: { dirs: [] }` in `nuxt.config.ts`). The codebase uses explicit `import { Button } from "@/components/ui/button"`. shadcn-vue ships `index.ts` re-exports next to each `Component.vue`, which collide with auto-import; explicit imports remove the ambiguity.
+- **Lint / format:** `eslint.config.ts` is a flat config with `eslint-plugin-vue` flat/recommended + `vueTsConfigs.recommendedTypeChecked` + prettier skip-formatting. Two project-specific overrides: shadcn dir (`components/ui/**`) disables `multi-word-component-names` and `require-default-prop`; Nuxt route dirs (`pages/**`, `layouts/**`, `error.vue`, `app.vue`) disable `multi-word-component-names` since file-based routes are single-word by convention.
+- **Type check:** `nuxt typecheck` must pass with zero errors. CI runs `bun run postinstall` (which invokes `nuxt prepare`) before typecheck so `.nuxt/tsconfig.json` is up-to-date.
 - **No build-time fetch of OpenAPI.** `ui/openapi.json` is committed; regenerate explicitly with `just ui-gen-api` after backend route or schema changes.
 - **No `any`.** Same rule as the backend's mypy strict — applies to TypeScript too.
+- **Tailwind v4** via `@tailwindcss/vite` plugin (registered in `nuxt.config.ts` under `vite.plugins`). `assets/css/main.css` starts with `@import "tailwindcss";` and shadcn theme variables.
+- **SEO:** `useSeoMeta({...})` on every public page. `@nuxtjs/sitemap` and `@nuxtjs/robots` auto-generate `/sitemap.xml` and `/robots.txt` at runtime, excluding `/login`, `/register`, `/dashboard/**`.
 
-Just recipes wrap every command: `just ui-install`, `just ui-dev`, `just ui-build`, `just ui-lint`, `just ui-format`, `just ui-types`, `just ui-test`, `just ui-gen-api`. `just test-all` runs both backend and frontend pipelines.
+Just recipes wrap every command: `just ui-install`, `just ui-dev`, `just ui-build`, `just ui-generate` (static-only), `just ui-lint`, `just ui-format`, `just ui-types`, `just ui-test`, `just ui-gen-api`. `just test-all` runs both backend and frontend pipelines.
 
 ### Layer Rules
 
@@ -463,6 +484,88 @@ Pipeline ergonomics:
   unrelated runtime deps (notably `vue-router`, observed in B4).
   After every batch of `add` calls, diff `package.json` to confirm
   nothing went missing.
+
+---
+
+### Faz 8 — Vue 3 → Nuxt 3 Migration
+
+Replaces the Vite SPA with a hybrid Nuxt 3 app — marketing pages get
+SSG, auth pages get SSR, the dashboard stays SPA. Same monorepo, same
+`ui/` directory, same shadcn-vue / Pinia / vee-validate stack; the
+shell (router, entry point, client) and a number of conventions
+change.
+
+Steps and commits:
+
+1. Scaffold Nuxt 3 — delete `vite.config.ts`, `index.html`, `src/App.vue`,
+   `src/main.ts`, `tsconfig.{app,node}.json`; add `nuxt.config.ts`,
+   `app.vue`, root-level `tsconfig.json` extending `./.nuxt/tsconfig.json`.
+   `chore: scaffold nuxt 3 in ui directory`
+
+2. Move every directory out of `src/` to `ui/` root (components/, lib/,
+   api/, stores/, assets/). Rewrite each page as a file-based route
+   (`pages/login.vue`, `pages/register.vue`, `pages/dashboard/index.vue`,
+   `pages/dashboard/profile.vue`, `pages/dashboard/users.vue`). Port
+   `DashboardLayout.vue` to `layouts/dashboard.vue`, `NotFoundPage.vue`
+   to `error.vue`. Replace `<RouterLink>` with `<NuxtLink>` and
+   `useRouter().push(...)` with `navigateTo(...)`. Extract the axios-aware
+   `explain()` helper to `lib/api-error.ts` as `explainApiError(err, fallback)`
+   so pages stop importing axios directly.
+   `refactor: migrate vue-router views to nuxt pages`
+
+3. Rewrite `stores/auth.ts` to persist the token via `useCookie`
+   (SSR-safe; `localStorage` crashes on the server). Move the
+   `router.beforeEach` logic into `middleware/auth.global.ts`
+   (hydrate user on first hit, redirect public-only routes when
+   signed in). Add `middleware/auth.ts` and `middleware/admin.ts`
+   for pages to opt into.
+   `feat: add nuxt auth middleware with cookie-based token`
+
+4. Drop axios entirely. `plugins/api.ts` provides a `$fetch` instance
+   with `baseURL: useRuntimeConfig().public.apiBase` and an
+   `onRequest` hook that attaches the bearer token from
+   `useCookie(TOKEN_COOKIE)`. `composables/useApi.ts` exposes the
+   instance to endpoint files. Rewrite each `api/endpoints/*.ts` to
+   call `useApi()` instead of the axios `http` client; delete
+   `api/client.ts`.
+   `refactor: replace axios client with nuxt useApi composable`
+
+5. Add the public marketing surface — `layouts/default.vue`
+   (top-nav + footer, auth-aware CTA), `pages/index.vue` (hero +
+   CTA), `pages/pricing.vue` (two-tier stub). Verify SSG output
+   exists under `.output/public/index.html` and
+   `.output/public/pricing/index.html`.
+   `feat: add public marketing pages with ssg`
+
+6. Wire `@nuxtjs/sitemap` and `@nuxtjs/robots` in `nuxt.config.ts`
+   with `exclude` / `disallow` lists for auth + dashboard. Verify
+   the dynamic endpoints respond at runtime.
+   `feat: add seo modules and per-page meta`
+
+7. Backend gets one CORS line — `app/settings.py` adds
+   `http://localhost:3000` to the default `cors_origins` so the
+   Nuxt dev server can call the API. Frontend tooling: update the
+   `justfile` ui-* recipes to call `nuxt`-prefixed commands (plus a
+   new `ui-generate`); CI workflow gets an explicit `nuxt prepare`
+   step before lint/types since `bun install --frozen-lockfile`
+   does not always run lifecycle scripts. ESLint config gets two
+   new overrides (`components/ui/**` for shadcn — kept from Faz 7,
+   path updated; `pages/**` / `layouts/**` / `error.vue` /
+   `app.vue` for Nuxt single-word route names).
+   `feat: extend cors origins for nuxt dev server`
+   `chore: update justfile and ci for nuxt build`
+
+8. Update this file and the README. `tasks/todo.md` already has the
+   full Faz 8 plan; CLAUDE.md gets the Nuxt-era frontend section
+   above and this Faz 8 entry; README gets a frontend bullet
+   refresh (dev URL `:3000`, hybrid render note, env var name
+   `NUXT_PUBLIC_API_BASE` replacing `VITE_API_BASE_URL`).
+   `docs: document nuxt frontend in claude.md and readme`
+
+Branch protection note: this work happens on `feat/faz-8-nuxt`,
+not on `main`. Intermediate commits between Task 2 and Task 4 are
+red on purpose (pages reference an `axios` that has been removed
+but not yet replaced). Final commit must be all-green before merge.
 
 ---
 

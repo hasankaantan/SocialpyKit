@@ -73,7 +73,7 @@ If `nunomaduro/laravel-starter-kit` set the bar for "what a senior-grade Laravel
 | Task runner | `just` |
 | Pre-commit | `pre-commit` |
 | CI | GitHub Actions |
-| Frontend (`ui/` in this monorepo) | Vue 3 + Vite + Pinia + Axios + `openapi-typescript`, managed with `bun` |
+| Frontend (`ui/` in this monorepo) | Nuxt 3 (hybrid render — SSG marketing, SSR auth, SPA dashboard) + Pinia + `$fetch` + `useCookie` + `openapi-typescript` + shadcn-vue + vee-validate, managed with `bun` |
 
 ---
 
@@ -103,13 +103,21 @@ tests/
   unit/               # services and pure logic
   integration/        # DB + API tests via httpx.AsyncClient
   conftest.py
-ui/                   # Vue 3 frontend (monorepo, bun-managed)
-  src/
-    api/              # openapi-typescript generated types + axios wrappers
-    components/       # .vue components
-    main.ts
+ui/                   # Nuxt 3 frontend (monorepo, bun-managed)
+  app.vue             # root component
+  nuxt.config.ts      # render rules, modules, runtime config
+  pages/              # file-based routing
+  layouts/            # default (marketing) + dashboard (sidebar)
+  middleware/         # auth.global, auth, admin
+  plugins/api.ts      # $fetch with bearer-token interceptor
+  composables/useApi.ts
+  stores/auth.ts      # Pinia, useCookie-backed token (SSR-safe)
+  components/         # .vue components + shadcn-vue under ui/
+  api/                # openapi-typescript generated types + typed endpoint wrappers
+  lib/                # utils.ts (cn), api-error.ts
+  assets/css/main.css
+  error.vue
   package.json
-  vite.config.ts
   eslint.config.ts
   openapi.json        # exported from backend, regenerate via `just ui-gen-api`
 justfile              # all commands (backend, frontend, monorepo)
@@ -199,12 +207,13 @@ just dev                       # boot uvicorn with reload
 
 # --- frontend (in a second terminal) ---
 just ui-install                # install bun deps inside ui/
-just ui-dev                    # boot vite with hmr
+just ui-dev                    # boot nuxt dev with hmr
 ```
 
 - Backend API: `http://localhost:8000`. Swagger UI at `/api/docs`, ReDoc at `/api/redoc`.
-- Frontend dev server: `http://localhost:5173` (Vite default).
-- Frontend reads the API via `VITE_API_BASE_URL` (defaults to `http://localhost:8000`).
+- Frontend dev server: `http://localhost:3000` (Nuxt default).
+- Frontend reads the API via `NUXT_PUBLIC_API_BASE` (defaults to `http://localhost:8000`).
+- Hybrid render: `/` and `/pricing` are prerendered to static HTML; `/login` and `/register` are SSR; `/dashboard/**` is SPA-only.
 
 ---
 
@@ -226,13 +235,14 @@ just makemig msg="…" # alembic revision --autogenerate -m "…"
 
 # --- frontend (ui/) ---
 just ui-install     # bun install inside ui/
-just ui-dev         # vite dev server with hmr
-just ui-build       # vue-tsc + vite build
+just ui-dev         # nuxt dev with hmr
+just ui-build       # nuxt build (hybrid: server + prerendered static)
+just ui-generate    # nuxt generate (full-static, no server)
 just ui-lint        # eslint + prettier --check
 just ui-format      # prettier --write + eslint --fix
-just ui-types       # vue-tsc --noEmit
+just ui-types       # nuxt typecheck (vue-tsc against .nuxt/tsconfig.json)
 just ui-test        # ui-lint + ui-types + ui-build (full frontend pipeline)
-just ui-gen-api     # regenerate ui/openapi.json + ui/src/api/schema.ts
+just ui-gen-api     # regenerate ui/openapi.json + ui/api/schema.ts
 
 # --- monorepo ---
 just test-all       # just test && just ui-test  ← run before every commit
@@ -274,9 +284,10 @@ SocialpyKit is built in deliberate phases. Each step within a phase is its own c
 | **Phase 2** — Architecture refactor | ✅ Done | `essentials.py`, exception hierarchy, services / repositories, `whenever` migration |
 | **Phase 3** — Test & coverage | ✅ Done | Shared fixtures, unit + integration suites, 100% coverage gate enforced |
 | **Phase 4** — AI / dev experience | ✅ Done | `CLAUDE.md`, `AGENTS.md`, `.mcp.json`, `.cursor/` rules |
-| **Phase 5** — Vue 3 frontend (monorepo `ui/`) | ✅ Done | Vite + Pinia + Axios + `openapi-typescript`, bun-managed, ESLint strict |
+| **Phase 5** — Vue 3 frontend (monorepo `ui/`) | ✅ Done | Vite + Pinia + Axios + `openapi-typescript`, bun-managed, ESLint strict (superseded by Phase 8) |
 | **Phase 6** — Template parameterization | ✅ Done (soft) | `copier.yaml` variables, repo marked as GitHub template, `scripts/rename-project.sh` automates the rename |
 | **Phase 7** — Auth + dashboard | ✅ Done | JWT register/login/me, user RBAC with admin role, self profile update + delete, admin user CRUD, shadcn-vue dashboard with sidebar, vee-validate forms, vue-router auth/admin guards |
+| **Phase 8** — Nuxt 3 hybrid migration | ✅ Done | Replaces the Vite SPA with Nuxt 3: SSG for marketing (`/`, `/pricing`), SSR for auth (`/login`, `/register`), SPA for `/dashboard/**`. `useCookie` token, `$fetch` over axios, `useApi()` composable, file-based routing, global+named middleware, `@nuxtjs/sitemap` + `@nuxtjs/robots`. |
 
 For the detailed phase-by-phase commit plan, see [`CLAUDE.md`](./CLAUDE.md).
 
@@ -340,8 +351,13 @@ A ready-to-use [Caddy](https://caddyserver.com/) + Docker Compose stack lives un
 Frontend and API typically live on separate subdomains (`app.example.com` / `api.example.com`). Two settings tie them together:
 
 ```bash
-# frontend — compiled into the bundle at `bun run build` time
-VITE_API_BASE_URL=https://api.example.com
+# frontend — runtime config, read by Nuxt at request time (also overridable
+# at build time via the same env var, since Nuxt picks it up from
+# nuxt.config.ts → runtimeConfig.public.apiBase).
+NUXT_PUBLIC_API_BASE=https://api.example.com
+
+# frontend — sitemap / robots / SEO need the canonical site URL.
+NUXT_PUBLIC_SITE_URL=https://app.example.com
 
 # backend — JSON list, parsed by pydantic-settings
 SOCIALPYKIT_CORS_ORIGINS=["https://app.example.com"]
