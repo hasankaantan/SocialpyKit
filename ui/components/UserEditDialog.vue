@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { toTypedSchema } from "@vee-validate/zod"
-import axios from "axios"
 import { useForm } from "vee-validate"
 import { z } from "zod"
 
@@ -31,6 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
+import { explainApiError } from "@/lib/api-error"
 
 type User = components["schemas"]["UserResponse"]
 
@@ -73,18 +73,9 @@ const onSubmit = form.handleSubmit(async (values) => {
     })
     emit("updated", updated)
   } catch (err) {
-    form.setFieldError("email", explain(err))
+    form.setFieldError("email", explainApiError(err, "Update failed"))
   }
 })
-
-function explain(err: unknown): string {
-  if (axios.isAxiosError(err)) {
-    const detail = (err.response?.data as { detail?: string } | undefined)?.detail
-    if (typeof detail === "string") return detail
-  }
-  if (err instanceof Error) return err.message
-  return "Update failed"
-}
 </script>
 
 <template>

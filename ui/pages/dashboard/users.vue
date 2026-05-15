@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import axios from "axios"
 import { MoreHorizontalIcon, PencilIcon, Trash2Icon } from "lucide-vue-next"
 import { computed, onMounted, ref } from "vue"
 import { toast } from "vue-sonner"
@@ -32,7 +31,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { explainApiError } from "@/lib/api-error"
 import { useAuthStore } from "@/stores/auth"
+
+definePageMeta({
+  layout: "dashboard",
+  middleware: ["auth", "admin"],
+  ssr: false,
+})
+
+useSeoMeta({
+  title: "Users — SocialpyKit",
+})
 
 type User = components["schemas"]["UserResponse"]
 
@@ -50,7 +60,7 @@ async function load(): Promise<void> {
   try {
     users.value = [...(await usersApi.list())]
   } catch (err) {
-    toast.error(explain(err))
+    toast.error(explainApiError(err))
   } finally {
     loading.value = false
   }
@@ -79,19 +89,10 @@ async function confirmDelete(): Promise<void> {
     toast.success(`Deleted ${target.email}`)
     deleteTarget.value = null
   } catch (err) {
-    toast.error(explain(err))
+    toast.error(explainApiError(err))
   } finally {
     deleting.value = false
   }
-}
-
-function explain(err: unknown): string {
-  if (axios.isAxiosError(err)) {
-    const detail = (err.response?.data as { detail?: string } | undefined)?.detail
-    if (typeof detail === "string") return detail
-  }
-  if (err instanceof Error) return err.message
-  return "Request failed"
 }
 
 onMounted(load)

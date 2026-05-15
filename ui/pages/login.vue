@@ -1,6 +1,15 @@
 <script setup lang="ts">
 import LoginForm from "@/components/LoginForm.vue"
-import { RouterLink } from "vue-router"
+
+definePageMeta({
+  layout: "default",
+  publicOnly: true,
+})
+
+useSeoMeta({
+  title: "Sign in — SocialpyKit",
+  description: "Sign in to your SocialpyKit account.",
+})
 </script>
 
 <template>
@@ -9,9 +18,9 @@ import { RouterLink } from "vue-router"
       <LoginForm />
       <p class="mt-4 text-center text-sm text-muted-foreground">
         Don't have an account?
-        <RouterLink to="/register" class="font-medium text-primary hover:underline">
+        <NuxtLink to="/register" class="font-medium text-primary hover:underline">
           Create one
-        </RouterLink>
+        </NuxtLink>
       </p>
     </div>
   </div>

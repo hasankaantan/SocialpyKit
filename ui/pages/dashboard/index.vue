@@ -7,7 +7,6 @@ import {
   Loader2Icon,
 } from "lucide-vue-next"
 import { onMounted, ref } from "vue"
-import { RouterLink } from "vue-router"
 
 import { healthApi } from "@/api"
 import { Button } from "@/components/ui/button"
@@ -19,6 +18,16 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { useAuthStore } from "@/stores/auth"
+
+definePageMeta({
+  layout: "dashboard",
+  middleware: "auth",
+  ssr: false,
+})
+
+useSeoMeta({
+  title: "Dashboard — SocialpyKit",
+})
 
 const store = useAuthStore()
 const healthState = ref<"loading" | "ok" | "down">("loading")
@@ -88,10 +97,10 @@ onMounted(async () => {
         </CardHeader>
         <CardContent>
           <Button as-child variant="outline" size="sm">
-            <RouterLink to="/dashboard/profile">
+            <NuxtLink to="/dashboard/profile">
               Open profile
               <ArrowRightIcon class="ml-2 h-4 w-4" />
-            </RouterLink>
+            </NuxtLink>
           </Button>
         </CardContent>
       </Card>
@@ -103,10 +112,10 @@ onMounted(async () => {
         </CardHeader>
         <CardContent>
           <Button as-child variant="outline" size="sm">
-            <RouterLink to="/dashboard/users">
+            <NuxtLink to="/dashboard/users">
               Manage users
               <ArrowRightIcon class="ml-2 h-4 w-4" />
-            </RouterLink>
+            </NuxtLink>
           </Button>
         </CardContent>
       </Card>

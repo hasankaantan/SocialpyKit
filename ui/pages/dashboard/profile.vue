@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { toTypedSchema } from "@vee-validate/zod"
-import axios from "axios"
 import { Trash2Icon } from "lucide-vue-next"
 import { useForm } from "vee-validate"
 import { ref } from "vue"
 import { toast } from "vue-sonner"
-import { useRouter } from "vue-router"
 import { z } from "zod"
 
 import { usersApi } from "@/api"
@@ -35,7 +33,18 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { explainApiError } from "@/lib/api-error"
 import { useAuthStore } from "@/stores/auth"
+
+definePageMeta({
+  layout: "dashboard",
+  middleware: "auth",
+  ssr: false,
+})
+
+useSeoMeta({
+  title: "Profile — SocialpyKit",
+})
 
 const PASSWORD_MIN_LENGTH = 8
 const PASSWORD_MAX_LENGTH = 72
@@ -50,11 +59,9 @@ interface PasswordValues {
 }
 
 const store = useAuthStore()
-const router = useRouter()
 const deleting = ref(false)
 const deleteError = ref<string | null>(null)
 
-// --- email form ---
 const emailForm = useForm<EmailValues>({
   validationSchema: toTypedSchema(
     z.object({
@@ -70,11 +77,10 @@ const onSubmitEmail = emailForm.handleSubmit(async (values) => {
     store.user = updated
     toast.success("Email updated")
   } catch (err) {
-    toast.error(explain(err))
+    toast.error(explainApiError(err))
   }
 })
 
-// --- password form ---
 const passwordForm = useForm<PasswordValues>({
   validationSchema: toTypedSchema(
     z.object({
@@ -97,33 +103,23 @@ const onSubmitPassword = passwordForm.handleSubmit(async (values) => {
     passwordForm.resetForm()
     toast.success("Password updated")
   } catch (err) {
-    toast.error(explain(err))
+    toast.error(explainApiError(err))
   }
 })
 
-// --- delete ---
 async function onDelete(): Promise<void> {
   deleteError.value = null
   deleting.value = true
   try {
     await usersApi.deleteSelf()
     store.logout()
-    await router.push("/login")
+    await navigateTo("/login")
     toast.success("Account deleted")
   } catch (err) {
-    deleteError.value = explain(err)
+    deleteError.value = explainApiError(err)
   } finally {
     deleting.value = false
   }
-}
-
-function explain(err: unknown): string {
-  if (axios.isAxiosError(err)) {
-    const detail = (err.response?.data as { detail?: string } | undefined)?.detail
-    if (typeof detail === "string") return detail
-  }
-  if (err instanceof Error) return err.message
-  return "Request failed"
 }
 </script>
 

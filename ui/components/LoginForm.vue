@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { toTypedSchema } from "@vee-validate/zod"
-import axios from "axios"
 import { useForm } from "vee-validate"
 import { ref } from "vue"
-import { useRouter } from "vue-router"
 import { z } from "zod"
 
 import { Button } from "@/components/ui/button"
@@ -22,31 +20,26 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { explainApiError } from "@/lib/api-error"
 import { useAuthStore } from "@/stores/auth"
 
-const PASSWORD_MIN_LENGTH = 8
-const PASSWORD_MAX_LENGTH = 72
+const route = useRoute()
+const store = useAuthStore()
+const error = ref<string | null>(null)
 
-interface RegisterValues {
+interface LoginValues {
   email: string
   password: string
 }
 
-const router = useRouter()
-const store = useAuthStore()
-const error = ref<string | null>(null)
-
 const schema = toTypedSchema(
   z.object({
     email: z.string().email("Enter a valid email"),
-    password: z
-      .string()
-      .min(PASSWORD_MIN_LENGTH, `At least ${PASSWORD_MIN_LENGTH} characters`)
-      .max(PASSWORD_MAX_LENGTH, `At most ${PASSWORD_MAX_LENGTH} bytes`),
+    password: z.string().min(1, "Password is required"),
   }),
 )
 
-const form = useForm<RegisterValues>({
+const form = useForm<LoginValues>({
   validationSchema: schema,
   initialValues: { email: "", password: "" },
 })
@@ -54,28 +47,21 @@ const form = useForm<RegisterValues>({
 const onSubmit = form.handleSubmit(async (values) => {
   error.value = null
   try {
-    await store.register(values.email, values.password)
-    await router.push("/dashboard")
+    await store.login(values.email, values.password)
+    const redirect =
+      typeof route.query.redirect === "string" ? route.query.redirect : "/dashboard"
+    await navigateTo(redirect)
   } catch (err) {
-    error.value = explain(err)
+    error.value = explainApiError(err, "Login failed")
   }
 })
-
-function explain(err: unknown): string {
-  if (axios.isAxiosError(err)) {
-    const detail = (err.response?.data as { detail?: string } | undefined)?.detail
-    if (typeof detail === "string") return detail
-  }
-  if (err instanceof Error) return err.message
-  return "Registration failed"
-}
 </script>
 
 <template>
   <Card>
     <CardHeader>
-      <CardTitle>Create an account</CardTitle>
-      <CardDescription>Sign up to get started.</CardDescription>
+      <CardTitle>Sign in</CardTitle>
+      <CardDescription>Welcome back to SocialpyKit.</CardDescription>
     </CardHeader>
     <CardContent>
       <form class="space-y-4" @submit="onSubmit">
@@ -95,7 +81,7 @@ function explain(err: unknown): string {
             <FormControl>
               <Input
                 type="password"
-                autocomplete="new-password"
+                autocomplete="current-password"
                 v-bind="componentField"
               />
             </FormControl>
@@ -108,7 +94,7 @@ function explain(err: unknown): string {
         </p>
 
         <Button type="submit" class="w-full" :disabled="form.isSubmitting.value">
-          {{ form.isSubmitting.value ? "Creating account…" : "Create account" }}
+          {{ form.isSubmitting.value ? "Signing in…" : "Sign in" }}
         </Button>
       </form>
     </CardContent>

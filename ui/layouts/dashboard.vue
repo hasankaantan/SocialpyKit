@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { HomeIcon, LogOutIcon, UserIcon, UsersIcon } from "lucide-vue-next"
 import { computed } from "vue"
-import { RouterLink, RouterView, useRouter } from "vue-router"
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -15,7 +14,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useAuthStore } from "@/stores/auth"
 
-const router = useRouter()
 const store = useAuthStore()
 
 const isAdmin = computed(() => store.user?.role === "admin")
@@ -27,7 +25,7 @@ const initials = computed(() => {
 
 async function onLogout(): Promise<void> {
   store.logout()
-  await router.push("/login")
+  await navigateTo("/login")
 }
 </script>
 
@@ -36,9 +34,7 @@ async function onLogout(): Promise<void> {
     <header
       class="sticky top-0 z-10 flex h-14 items-center justify-between border-b bg-background px-6"
     >
-      <RouterLink to="/dashboard" class="text-lg font-semibold">
-        SocialpyKit
-      </RouterLink>
+      <NuxtLink to="/dashboard" class="text-lg font-semibold">SocialpyKit</NuxtLink>
 
       <DropdownMenu>
         <DropdownMenuTrigger as-child>
@@ -70,23 +66,23 @@ async function onLogout(): Promise<void> {
     <div class="flex">
       <aside class="hidden w-56 shrink-0 border-r p-4 md:block">
         <nav class="flex flex-col gap-1 text-sm">
-          <RouterLink
+          <NuxtLink
             to="/dashboard"
             exact-active-class="bg-accent text-accent-foreground"
             class="flex items-center rounded-md px-3 py-2 transition hover:bg-accent/60"
           >
             <HomeIcon class="mr-2 h-4 w-4" />
             Dashboard
-          </RouterLink>
-          <RouterLink
+          </NuxtLink>
+          <NuxtLink
             to="/dashboard/profile"
             active-class="bg-accent text-accent-foreground"
             class="flex items-center rounded-md px-3 py-2 transition hover:bg-accent/60"
           >
             <UserIcon class="mr-2 h-4 w-4" />
             Profile
-          </RouterLink>
-          <RouterLink
+          </NuxtLink>
+          <NuxtLink
             v-if="isAdmin"
             to="/dashboard/users"
             active-class="bg-accent text-accent-foreground"
@@ -94,12 +90,12 @@ async function onLogout(): Promise<void> {
           >
             <UsersIcon class="mr-2 h-4 w-4" />
             Users
-          </RouterLink>
+          </NuxtLink>
         </nav>
       </aside>
 
       <main class="flex-1 p-6">
-        <RouterView />
+        <slot />
       </main>
     </div>
   </div>
