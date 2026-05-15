@@ -52,6 +52,9 @@ ui-dev:
 ui-build:
     cd ui && bun run build
 
+ui-generate:
+    cd ui && bun run generate
+
 ui-lint:
     cd ui && bun run lint
     cd ui && bun run format:check
@@ -67,7 +70,7 @@ ui-test: ui-lint ui-types
     cd ui && bun run build
 
 # Regenerate ui/openapi.json from the live FastAPI app, then refresh
-# ui/src/api/schema.ts. Run after any backend route or schema change.
+# ui/api/schema.ts. Run after any backend route or schema change.
 ui-gen-api:
     uv run python -c "import json; from app.core.server import get_app; print(json.dumps(get_app().openapi(), indent=2))" > ui/openapi.json
     cd ui && bun run gen-api

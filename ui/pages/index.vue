@@ -17,8 +17,8 @@ useSeoMeta({
       The production-grade FastAPI starter kit
     </h1>
     <p class="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-      Strict typing. 100% coverage. JWT auth + RBAC. Async SQLAlchemy.
-      Nuxt 3 frontend. Built to ship, not to demo.
+      Strict typing. 100% coverage. JWT auth + RBAC. Async SQLAlchemy. Nuxt 3 frontend.
+      Built to ship, not to demo.
     </p>
     <div class="mt-10 flex items-center justify-center gap-4">
       <Button as-child size="lg">

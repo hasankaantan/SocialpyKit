@@ -24,6 +24,8 @@ jobs:
           bun-version: latest
       - name: Install deps
         run: bun install --frozen-lockfile
+      - name: Nuxt prepare
+        run: bun run postinstall
       - name: ESLint
         run: bun run lint
       - name: Prettier
@@ -38,7 +40,9 @@ jobs:
           bun-version: latest
       - name: Install deps
         run: bun install --frozen-lockfile
-      - name: vue-tsc
+      - name: Nuxt prepare
+        run: bun run postinstall
+      - name: nuxt typecheck
         run: bun run types
 
   build:
@@ -50,5 +54,5 @@ jobs:
           bun-version: latest
       - name: Install deps
         run: bun install --frozen-lockfile
-      - name: Vite build
+      - name: Nuxt build
         run: bun run build

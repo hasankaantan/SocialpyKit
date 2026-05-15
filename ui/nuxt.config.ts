@@ -5,12 +5,7 @@ export default defineNuxtConfig({
   compatibilityDate: "2025-12-01",
   devtools: { enabled: true },
 
-  modules: [
-    "@pinia/nuxt",
-    "@vueuse/nuxt",
-    "@nuxtjs/sitemap",
-    "@nuxtjs/robots",
-  ],
+  modules: ["@pinia/nuxt", "@vueuse/nuxt", "@nuxtjs/sitemap", "@nuxtjs/robots"],
 
   css: ["~/assets/css/main.css"],
 

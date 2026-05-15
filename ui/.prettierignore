@@ -2,6 +2,8 @@ dist
 dist-ssr
 coverage
 node_modules
-src/api/schema.ts
+.nuxt
+.output
+api/schema.ts
 openapi.json
 bun.lock

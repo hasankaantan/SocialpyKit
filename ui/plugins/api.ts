@@ -15,7 +15,7 @@ export default defineNuxtPlugin(() => {
     onRequest({ options }) {
       const token = useCookie<string | null>(TOKEN_COOKIE).value
       if (token !== null) {
-        const headers = new Headers(options.headers as HeadersInit | undefined)
+        const headers = new Headers(options.headers)
         headers.set("Authorization", `Bearer ${token}`)
         options.headers = headers
       }

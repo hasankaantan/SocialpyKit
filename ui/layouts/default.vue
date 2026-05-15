@@ -41,7 +41,8 @@ const store = useAuthStore()
         <a
           href="https://github.com/hasankaantan/SocialpyKit"
           class="hover:text-foreground"
-        >GitHub</a>
+          >GitHub</a
+        >
       </div>
     </footer>
   </div>
