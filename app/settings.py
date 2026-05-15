@@ -50,10 +50,11 @@ class Settings(BaseSettings):
     # suite is not subject to the per-IP limits documented on the routes.
     rate_limit_enabled: bool = True
 
-    # CORS origins that may call the API from a browser. Dev default
-    # matches the vite dev server; production deployments must override
-    # via SOCIALPYKIT_CORS_ORIGINS (json list of urls).
-    cors_origins: list[str] = ["http://localhost:5173"]
+    # CORS origins that may call the API from a browser. Dev defaults
+    # cover both the Vite (5173, legacy) and Nuxt (3000) dev servers;
+    # production deployments must override via SOCIALPYKIT_CORS_ORIGINS
+    # (json list of urls).
+    cors_origins: list[str] = ["http://localhost:5173", "http://localhost:3000"]
 
     # JWT auth configuration.
     # In production, jwt_secret_key MUST come from the environment
