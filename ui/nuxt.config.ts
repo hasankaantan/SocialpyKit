@@ -14,6 +14,14 @@ export default defineNuxtConfig({
 
   css: ["~/assets/css/main.css"],
 
+  // Disable component auto-import. The codebase uses explicit imports
+  // throughout (matching shadcn-vue's documented pattern). Auto-import on
+  // top of explicit imports triggers Nuxt's duplicate-component warning
+  // for each shadcn `index.ts` ↔ `Component.vue` pair.
+  components: {
+    dirs: [],
+  },
+
   vite: {
     plugins: [tailwindcss()],
   },
