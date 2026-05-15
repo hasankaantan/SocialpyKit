@@ -1,7 +1,7 @@
-import { http } from "../client"
+import { useApi } from "~/composables/useApi"
 
 export const healthApi = {
   async check(): Promise<void> {
-    await http.get("/api/health")
+    await useApi()("/api/health")
   },
 } as const

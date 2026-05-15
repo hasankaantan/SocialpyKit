@@ -1,4 +1,5 @@
-import { http } from "../client"
+import { useApi } from "~/composables/useApi"
+
 import type { paths } from "../schema"
 
 type RegisterPayload =
@@ -12,8 +13,10 @@ type UserResponse =
 
 export const authApi = {
   async register(payload: RegisterPayload): Promise<RegisterResponse> {
-    const { data } = await http.post<RegisterResponse>("/api/auth/register", payload)
-    return data
+    return useApi()<RegisterResponse>("/api/auth/register", {
+      method: "POST",
+      body: payload,
+    })
   },
 
   /**
@@ -24,19 +27,18 @@ export const authApi = {
     const form = new URLSearchParams()
     form.append("username", email)
     form.append("password", password)
-    const { data } = await http.post<TokenResponse>("/api/auth/login", form, {
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    return useApi()<TokenResponse>("/api/auth/login", {
+      method: "POST",
+      body: form,
     })
-    return data
   },
 
   /**
    * Fetch the user behind the current bearer token. The token is picked
-   * up automatically by the axios request interceptor in api/client.ts,
-   * so callers do not pass it explicitly.
+   * up automatically by the onRequest hook in plugins/api.ts, so callers
+   * do not pass it explicitly.
    */
   async me(): Promise<UserResponse> {
-    const { data } = await http.get<UserResponse>("/api/auth/me")
-    return data
+    return useApi()<UserResponse>("/api/auth/me")
   },
 } as const

@@ -1,4 +1,5 @@
-import { http } from "../client"
+import { useApi } from "~/composables/useApi"
+
 import type { paths } from "../schema"
 
 type DummyList =
@@ -10,11 +11,12 @@ type DummyCreateResponse =
 
 export const dummyApi = {
   async list(params?: { limit?: number; offset?: number }): Promise<DummyList> {
-    const { data } = await http.get<DummyList>("/api/dummy/", { params })
-    return data
+    return useApi()<DummyList>("/api/dummy/", { query: params })
   },
   async create(payload: DummyCreatePayload): Promise<DummyCreateResponse> {
-    const { data } = await http.put<DummyCreateResponse>("/api/dummy/", payload)
-    return data
+    return useApi()<DummyCreateResponse>("/api/dummy/", {
+      method: "PUT",
+      body: payload,
+    })
   },
 } as const

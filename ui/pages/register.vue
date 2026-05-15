@@ -2,7 +2,7 @@
 import RegisterForm from "@/components/RegisterForm.vue"
 
 definePageMeta({
-  layout: "default",
+  layout: false,
   publicOnly: true,
 })
 

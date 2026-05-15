@@ -2,7 +2,7 @@
 import LoginForm from "@/components/LoginForm.vue"
 
 definePageMeta({
-  layout: "default",
+  layout: false,
   publicOnly: true,
 })
 

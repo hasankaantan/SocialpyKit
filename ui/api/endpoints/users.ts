@@ -1,4 +1,5 @@
-import { http } from "../client"
+import { useApi } from "~/composables/useApi"
+
 import type { paths } from "../schema"
 
 type UserList =
@@ -15,19 +16,20 @@ type AdminUpdateResponse =
 export const usersApi = {
   /** GET /api/users — admin only. */
   async list(): Promise<UserList> {
-    const { data } = await http.get<UserList>("/api/users/")
-    return data
+    return useApi()<UserList>("/api/users/")
   },
 
   /** PATCH /api/users/me — caller updates their own profile. */
   async updateSelf(payload: UpdateSelfPayload): Promise<UpdateSelfResponse> {
-    const { data } = await http.patch<UpdateSelfResponse>("/api/users/me", payload)
-    return data
+    return useApi()<UpdateSelfResponse>("/api/users/me", {
+      method: "PATCH",
+      body: payload,
+    })
   },
 
   /** DELETE /api/users/me — caller deletes their own account. */
   async deleteSelf(): Promise<void> {
-    await http.delete("/api/users/me")
+    await useApi()("/api/users/me", { method: "DELETE" })
   },
 
   /** PATCH /api/users/{user_id} — admin only. */
@@ -35,15 +37,14 @@ export const usersApi = {
     userId: number,
     payload: AdminUpdatePayload,
   ): Promise<AdminUpdateResponse> {
-    const { data } = await http.patch<AdminUpdateResponse>(
-      `/api/users/${userId}`,
-      payload,
-    )
-    return data
+    return useApi()<AdminUpdateResponse>(`/api/users/${userId}`, {
+      method: "PATCH",
+      body: payload,
+    })
   },
 
   /** DELETE /api/users/{user_id} — admin only. */
   async deleteAsAdmin(userId: number): Promise<void> {
-    await http.delete(`/api/users/${userId}`)
+    await useApi()(`/api/users/${userId}`, { method: "DELETE" })
   },
 } as const
