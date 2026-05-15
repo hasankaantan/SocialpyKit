@@ -38,6 +38,8 @@ export default defineNuxtConfig({
   routeRules: {
     "/": { prerender: true },
     "/pricing": { prerender: true },
+    "/sitemap.xml": { prerender: true },
+    "/robots.txt": { prerender: true },
     "/login": { ssr: true },
     "/register": { ssr: true },
     "/dashboard/**": { ssr: false },
@@ -46,6 +48,17 @@ export default defineNuxtConfig({
   site: {
     url: "http://localhost:3000",
     name: "SocialpyKit",
+  },
+
+  // Sitemap covers public marketing routes only; auth + dashboard are
+  // excluded since they should not be indexed.
+  sitemap: {
+    exclude: ["/login", "/register", "/dashboard/**"],
+  },
+
+  // Same exclusion list for crawlers via robots.txt.
+  robots: {
+    disallow: ["/login", "/register", "/dashboard/"],
   },
 
   typescript: {
